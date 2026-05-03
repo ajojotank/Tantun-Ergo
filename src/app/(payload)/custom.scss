@@ -1,0 +1,10 @@
+/* Tantum Ergo studio overrides — keep minimal. */
+/* Avoid retuning --theme-elevation-* — Payload derives label, placeholder,
+   border, and input-bg contrast from those tokens, so warming them cracks the
+   whole contrast model. Touch only safely-isolated brand bits here. */
+
+.payload__brand-logo,
+.payload__brand-text {
+  letter-spacing: -0.01em;
+  font-feature-settings: 'ss01';
+}
