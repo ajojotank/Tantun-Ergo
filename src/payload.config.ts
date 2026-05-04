@@ -11,6 +11,8 @@ import { Media } from './collections/Media'
 import { Pages } from './collections/Pages'
 import { Users } from './collections/Users'
 import { initRawTables } from './db/init-raw-tables'
+import { Settings } from './globals/Settings'
+import { ManifestoSequence } from './globals/ManifestoSequence'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -67,6 +69,7 @@ export default buildConfig({
     },
   },
   collections: [Users, Media, Pages],
+  globals: [Settings, ManifestoSequence],
   cors: [serverURL].filter(Boolean),
   csrf: [serverURL].filter(Boolean),
   editor: lexicalEditor(),
