@@ -1,10 +1,40 @@
-/* Tantum Ergo studio overrides — keep minimal. */
-/* Avoid retuning --theme-elevation-* — Payload derives label, placeholder,
-   border, and input-bg contrast from those tokens, so warming them cracks the
-   whole contrast model. Touch only safely-isolated brand bits here. */
+/* Tantum Ergo studio overrides — keep minimal.
+ * DO NOT override --theme-elevation-* tokens; doing so cracks input contrast.
+ * Only safe-isolated brand bits and the accent color (rubric instead of purple). */
 
-.payload__brand-logo,
-.payload__brand-text {
+/* Accent swap: Payload's default purple → our rubric red */
+:root {
+  --theme-success-500: #8c2a2a;
+  --theme-success-600: #5e1a1a;
+  --theme-success-700: #4a1414;
+}
+
+/* Brand strip in the sidebar — gentle gilt accent rule under the logo */
+.nav__header {
+  position: relative;
+
+  &::after {
+    content: '';
+    display: block;
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(176, 138, 62, 0.4) 50%,
+      transparent 100%
+    );
+  }
+}
+
+/* Italic Cormorant on top-level admin headers */
+.collection-list__header h1,
+.global-edit__header h1,
+.dashboard__header h1 {
+  font-family: 'Cormorant Garamond', ui-serif, Georgia, serif;
+  font-style: italic;
   letter-spacing: -0.01em;
-  font-feature-settings: 'ss01';
 }
