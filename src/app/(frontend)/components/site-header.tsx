@@ -4,6 +4,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 
+import { Wordmark } from '@/components/brand/wordmark'
 import { MobileDrawer } from './mobile-drawer'
 
 const NAV = [
@@ -19,20 +20,8 @@ export function SiteHeader() {
   return (
     <>
       <header className="mx-auto flex w-full max-w-7xl items-center justify-between px-5 pt-6 sm:px-8 md:pt-10">
-        <Link href="/" className="flex items-center gap-3">
-          <span
-            aria-hidden
-            className="grid h-9 w-9 place-items-center rounded-full bg-ink text-vellum text-[10px] font-mono tracking-[0.2em]"
-            style={{ boxShadow: 'var(--shadow-relief)' }}
-          >
-            TE
-          </span>
-          <div className="leading-tight">
-            <p className="font-display text-lg italic text-ink">Tantum Ergo</p>
-            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-              Studio · ZA
-            </p>
-          </div>
+        <Link href="/" className="block">
+          <Wordmark />
         </Link>
 
         {/* Desktop nav */}
