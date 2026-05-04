@@ -46,6 +46,32 @@ export const Settings: GlobalConfig = {
       ],
     },
     {
+      name: 'brand',
+      type: 'group',
+      fields: [
+        {
+          name: 'logo',
+          type: 'upload',
+          relationTo: 'media',
+          admin: {
+            description: 'Optional custom logo. If unset, the chi-rho + wordmark default renders.',
+          },
+        },
+        {
+          name: 'faviconLight',
+          type: 'upload',
+          relationTo: 'media',
+          admin: { description: 'PNG, transparent background, 32×32 or 64×64.' },
+        },
+        {
+          name: 'faviconDark',
+          type: 'upload',
+          relationTo: 'media',
+          admin: { description: 'PNG, transparent background, for dark mode.' },
+        },
+      ],
+    },
+    {
       name: 'mapboxStyle',
       type: 'text',
       label: 'Mapbox style URL',
