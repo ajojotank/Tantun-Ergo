@@ -77,6 +77,15 @@ export const HomePage: GlobalConfig = {
                   defaultValue: 'Read the manifesto',
                 },
                 { name: 'ctaSecondaryHref', type: 'text', defaultValue: '/manifesto' },
+                {
+                  name: 'image',
+                  type: 'upload',
+                  relationTo: 'media',
+                  admin: {
+                    description:
+                      'Full-bleed background image for the hero section. Aspect 16:9 ideal. Mobile crops centre.',
+                  },
+                },
               ],
             },
           ],
@@ -143,6 +152,15 @@ export const HomePage: GlobalConfig = {
                         'A 3D cartography of approved miracles — Eucharistic, Marian, healings — anchored to coordinates, dates, and the ecclesial record.',
                     },
                     { name: 'href', type: 'text', defaultValue: '/atlas' },
+                    {
+                      name: 'image',
+                      type: 'upload',
+                      relationTo: 'media',
+                      admin: {
+                        description:
+                          'Background image for this pillar plate. Aspect 4:5 portrait.',
+                      },
+                    },
                   ],
                 },
                 {
@@ -157,6 +175,15 @@ export const HomePage: GlobalConfig = {
                       defaultValue: 'A breviary-paced LMS over councils, encyclicals, the Catechism.',
                     },
                     { name: 'href', type: 'text', defaultValue: '/doctrine' },
+                    {
+                      name: 'image',
+                      type: 'upload',
+                      relationTo: 'media',
+                      admin: {
+                        description:
+                          'Background image for this pillar plate. Aspect 4:5 portrait.',
+                      },
+                    },
                   ],
                 },
                 {
@@ -171,6 +198,15 @@ export const HomePage: GlobalConfig = {
                       defaultValue: 'An interlocutor bound to citation. Cites; never invents.',
                     },
                     { name: 'href', type: 'text', defaultValue: '/catechist' },
+                    {
+                      name: 'image',
+                      type: 'upload',
+                      relationTo: 'media',
+                      admin: {
+                        description:
+                          'Background image for this pillar plate. Aspect 4:5 portrait.',
+                      },
+                    },
                   ],
                 },
               ],
