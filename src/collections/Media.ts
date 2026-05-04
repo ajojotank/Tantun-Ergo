@@ -44,5 +44,15 @@ export const Media: CollectionConfig = {
         description: 'Photographer, archive, or rights holder.',
       },
     },
+    {
+      name: '_isSample',
+      type: 'checkbox',
+      label: 'Sample / placeholder content',
+      defaultValue: false,
+      admin: {
+        position: 'sidebar',
+        description: 'Marks this asset as filler. Frontend renders a [Sample] badge when shown.',
+      },
+    },
   ],
 }
