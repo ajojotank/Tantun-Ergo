@@ -51,7 +51,10 @@ function FrameLayer({
     const end = start + slot
     const fade = slot * 0.2 // 20% of a slot for cross-fade lead-in/out
     const isLast = i === count - 1
-    const exitStart = 0.93 // last frame starts dissolving here
+    // The last frame dissolves slowly across the back half of its hold so
+    // the dark→vellum transition feels gradual instead of snapping. With
+    // count=4 this is v∈[0.82, 1.0] = 18% of section ≈ 72vh of scroll.
+    const exitStart = 1 - slot * 0.72
 
     // Lead-in: first frame is already at 1 at v=0; later frames cross-fade
     // in with the preceding frame's fade-out.
@@ -60,12 +63,15 @@ function FrameLayer({
       if (v < start) return (v - (start - fade)) / fade
     }
 
-    // Trailing fade-out
+    // Trailing fade
     if (isLast) {
-      // Hold until 93% of the entire section, then dissolve to vellum.
       if (v < exitStart) return 1
       if (v >= 1) return 0
-      return 1 - (v - exitStart) / (1 - exitStart)
+      // Ease-out curve so the fade is heavier at the start (gradual smoke)
+      // and lighter as it nears full transparency. Avoids the linear-ramp
+      // "wall of cream" feel.
+      const t = (v - exitStart) / (1 - exitStart)
+      return 1 - t * t
     }
     if (v < end - fade) return 1
     if (v < end) return 1 - (v - (end - fade)) / fade

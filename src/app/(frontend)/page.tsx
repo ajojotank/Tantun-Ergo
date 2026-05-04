@@ -155,18 +155,18 @@ export default async function Home() {
 
       {/* Manifesto sequence (scroll-scrubbed). Joins the hero with no vellum
           strip in between — the dark cathedral imagery flows directly into
-          the dark sacred-art frames as one continuous mood. The fade to
-          vellum happens at the END of the manifesto (rendered inside the
-          component) so the exit into the editorial pillar section is
-          graceful rather than a hard cut. */}
+          the dark sacred-art frames as one continuous mood. The last frame
+          dissolves to transparent over the back ~18% of its scroll, exposing
+          the body's vellum gradually. The chi-rho rule below follows quickly
+          so the user is never marooned in a wall of cream. */}
       {seq.enabled && (seq.frames?.length ?? 0) > 0 ? (
         <ManifestoSequence frames={seq.frames as never} />
       ) : null}
 
-      <GildedRule className="py-16" />
+      <GildedRule className="pt-6 pb-12" />
 
       {/* Three pillar plates */}
-      <section className="mx-auto w-full max-w-7xl px-5 py-12 sm:px-8 md:py-20">
+      <section className="mx-auto w-full max-w-7xl px-5 pb-16 pt-8 sm:px-8 md:pb-24 md:pt-12">
         <SectionReveal className="grid grid-cols-1 gap-8 md:grid-cols-12 md:gap-8">
           <RevealItem className="md:col-span-12">
             {pillars.eyebrow ? (
