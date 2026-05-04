@@ -71,20 +71,20 @@ export default async function Home() {
               }}
             />
           )}
-          {/* Gradient veil — keeps text readable, dark in lower-left, fades upper-right */}
+          {/* Gradient veil — anchors text legibility in the lower-left
+              quadrant where the headline sits, while letting the cathedral
+              read clearly in the upper-right. Two layered gradients:
+                1. radial dark anchor at bottom-left (the text zone)
+                2. soft horizontal floor along the very bottom for the
+                   subhead + CTAs to contrast against. */}
           <div
             className="absolute inset-0"
             style={{
-              background:
-                'linear-gradient(115deg, rgba(12,10,8,0.85) 0%, rgba(12,10,8,0.55) 35%, rgba(12,10,8,0.15) 65%, rgba(12,10,8,0.0) 100%)',
-            }}
-          />
-          {/* Bottom fade so reveal of next section is graceful */}
-          <div
-            className="absolute inset-x-0 bottom-0 h-40"
-            style={{
-              background:
-                'linear-gradient(180deg, rgba(251,246,234,0) 0%, var(--color-vellum) 100%)',
+              background: [
+                'radial-gradient(120% 90% at 0% 100%, rgba(12,10,8,0.92) 0%, rgba(12,10,8,0.55) 35%, rgba(12,10,8,0.0) 65%)',
+                'linear-gradient(180deg, rgba(12,10,8,0) 55%, rgba(12,10,8,0.55) 100%)',
+                'linear-gradient(180deg, rgba(12,10,8,0.35) 0%, rgba(12,10,8,0) 18%)',
+              ].join(', '),
             }}
           />
         </div>
@@ -135,13 +135,14 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Manifesto sequence (scroll-scrubbed) — only renders when frames are populated.
-          GildedRule is bound to it so we never get back-to-back rules over an empty void. */}
+      {/* Manifesto sequence (scroll-scrubbed). Joins the hero with no vellum
+          strip in between — the dark cathedral imagery flows directly into
+          the dark sacred-art frames as one continuous mood. The fade to
+          vellum happens at the END of the manifesto (rendered inside the
+          component) so the exit into the editorial pillar section is
+          graceful rather than a hard cut. */}
       {seq.enabled && (seq.frames?.length ?? 0) > 0 ? (
-        <>
-          <GildedRule className="pt-16" />
-          <ManifestoSequence frames={seq.frames as never} />
-        </>
+        <ManifestoSequence frames={seq.frames as never} />
       ) : null}
 
       <GildedRule className="py-16" />

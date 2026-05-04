@@ -1,28 +1,28 @@
 import { ChiRho } from './chi-rho'
 
+// Site-header brand mark. Two-tier hierarchy: a confident chi-rho glyph plus
+// the wordmark in display italic. Sized to hold its own against the hero
+// headline rather than read as a navbar footnote.
 export function Wordmark({
   className,
   showIcon = true,
+  tone = 'light',
 }: {
   className?: string
   showIcon?: boolean
+  tone?: 'light' | 'dark' // 'light' = vellum on dark hero; 'dark' = ink on cream
 }) {
+  const text = tone === 'light' ? 'text-vellum' : 'text-ink'
+  const accent = tone === 'light' ? 'text-gilt' : 'text-rubric-deep'
   return (
-    <span className={`inline-flex items-center gap-3 ${className ?? ''}`}>
+    <span className={`inline-flex items-center gap-4 ${className ?? ''}`}>
       {showIcon ? (
-        <span
-          aria-hidden
-          className="grid h-9 w-9 place-items-center rounded-full bg-ink text-vellum"
-          style={{ boxShadow: 'var(--shadow-relief)' }}
-        >
-          <ChiRho size={18} />
-        </span>
+        <ChiRho size={42} className={accent} />
       ) : null}
-      <span className="leading-tight">
-        <span className="block font-display text-lg italic text-ink">Tantum Ergo</span>
-        <span className="block font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-          Studio · ZA
-        </span>
+      <span
+        className={`font-display text-2xl italic leading-none tracking-[-0.01em] sm:text-[26px] ${text}`}
+      >
+        Tantum Ergo
       </span>
     </span>
   )

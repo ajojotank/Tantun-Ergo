@@ -118,6 +118,19 @@ export function ManifestoSequence({ frames }: { frames: Frame[] }) {
           ))}
         </div>
       </div>
+
+      {/* Exit fade — sits at the absolute bottom of the (count*100vh) outer
+          section. Only enters viewport during the final viewport-worth of
+          scroll, gracefully blending the last frame out to vellum so the
+          editorial pillar section that follows doesn't read as a hard cut. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[40vh]"
+        style={{
+          background:
+            'linear-gradient(180deg, rgba(12,10,8,0) 0%, rgba(12,10,8,0.6) 55%, var(--color-vellum) 100%)',
+        }}
+      />
     </section>
   )
 }
