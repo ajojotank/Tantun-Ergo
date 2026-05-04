@@ -48,6 +48,7 @@ body {
     radial-gradient(80% 60% at 50% 0%, #fdf9ef 0%, transparent 60%),
     radial-gradient(60% 50% at 100% 100%, #f3e7c9 0%, transparent 70%),
     var(--color-vellum);
+  background-attachment: fixed;
 }
 
 /* Grain — fixed pseudo-element, no scroll repaint cost */
@@ -57,9 +58,23 @@ body::before {
   inset: 0;
   pointer-events: none;
   z-index: 60;
-  opacity: 0.04;
+  opacity: 0.07;
   mix-blend-mode: multiply;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+/* Faint chi-rho watermark, fixed to viewport so it doesn't repaint on scroll */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'><g fill='none' stroke='%231a1410' stroke-width='8' stroke-linecap='round'><line x1='150' y1='150' x2='250' y2='250'/><line x1='250' y1='150' x2='150' y2='250'/><line x1='200' y1='150' x2='200' y2='280'/><path d='M 200 150 Q 260 150 260 190 Q 260 230 200 230' /></g></svg>");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 60vmin auto;
 }
 
 @media (prefers-reduced-motion: reduce) {
