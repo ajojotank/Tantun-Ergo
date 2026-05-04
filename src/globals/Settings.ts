@@ -62,7 +62,7 @@ export const Settings: GlobalConfig = {
           name: 'refusalMessage',
           type: 'text',
           defaultValue:
-            'You've asked many questions in a short time. Please rest and return shortly.',
+            'You\'ve asked many questions in a short time. Please rest and return shortly.',
         },
       ],
     },
