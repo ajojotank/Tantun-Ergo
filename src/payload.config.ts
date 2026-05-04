@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url'
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
+import { s3Storage } from '@payloadcms/storage-s3'
 import { buildConfig } from 'payload'
 import sharp from 'sharp'
 
@@ -43,6 +44,35 @@ const email = smtpReady
     })
   : undefined
 
+// Supabase Storage (S3-compatible). When all four creds are present, uploads
+// to the `media` collection route to Supabase. Otherwise we leave local disk
+// as the backing store, which is fine for dev but should never ship to prod.
+const s3Bucket = process.env.SUPABASE_STORAGE_BUCKET
+const s3Endpoint = process.env.SUPABASE_S3_ENDPOINT
+const s3Region = process.env.SUPABASE_S3_REGION
+const s3AccessKeyId = process.env.SUPABASE_S3_ACCESS_KEY_ID
+const s3SecretAccessKey = process.env.SUPABASE_S3_SECRET_ACCESS_KEY
+const s3Ready = Boolean(s3Bucket && s3Endpoint && s3Region && s3AccessKeyId && s3SecretAccessKey)
+
+const plugins = s3Ready
+  ? [
+      s3Storage({
+        collections: { media: true },
+        bucket: s3Bucket!,
+        config: {
+          endpoint: s3Endpoint!,
+          region: s3Region!,
+          credentials: {
+            accessKeyId: s3AccessKeyId!,
+            secretAccessKey: s3SecretAccessKey!,
+          },
+          // Supabase's S3 endpoint requires path-style addressing.
+          forcePathStyle: true,
+        },
+      }),
+    ]
+  : []
+
 export default buildConfig({
   serverURL,
   admin: {
@@ -64,6 +94,7 @@ export default buildConfig({
   },
   collections: [Users, Media, Articles],
   globals: [Settings, HomePage, ManifestoPage, CreditsPage],
+  plugins,
   cors: [serverURL].filter(Boolean),
   csrf: [serverURL].filter(Boolean),
   editor: lexicalEditor(),
