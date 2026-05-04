@@ -46,6 +46,22 @@ export const Pages: CollectionConfig = {
           label: 'Content',
           fields: [
             {
+              name: 'pageType',
+              type: 'select',
+              required: true,
+              defaultValue: 'generic',
+              options: [
+                { label: 'Home block', value: 'home-block' },
+                { label: 'Manifesto', value: 'manifesto' },
+                { label: 'Credits', value: 'credits' },
+                { label: 'Reading article', value: 'reading-article' },
+                { label: 'Generic', value: 'generic' },
+              ],
+              admin: {
+                description: 'Drives where this Page surfaces. Manifesto and Credits should only have one published doc each.',
+              },
+            },
+            {
               name: 'title',
               type: 'text',
               required: true,
@@ -74,6 +90,23 @@ export const Pages: CollectionConfig = {
               name: 'body',
               type: 'richText',
             },
+            {
+              name: 'excerpt',
+              type: 'textarea',
+              admin: {
+                description: 'Short summary shown on listing pages (Reading index, home preview band).',
+                condition: (data) => data?.pageType === 'reading-article',
+              },
+            },
+            {
+              name: 'publishedAt',
+              type: 'date',
+              admin: {
+                position: 'sidebar',
+                description: 'Sort key for Reading index. Defaults to creation time.',
+                condition: (data) => data?.pageType === 'reading-article',
+              },
+            },
           ],
         },
         {
@@ -101,6 +134,15 @@ export const Pages: CollectionConfig = {
       admin: {
         position: 'sidebar',
         description: "URL fragment — use 'home' for the root.",
+      },
+    },
+    {
+      name: '_isSample',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        position: 'sidebar',
+        description: 'Marks this Page as filler / placeholder for the content team.',
       },
     },
   ],
