@@ -55,9 +55,13 @@ export default function FrontendRootLayout({
     <html
       lang="en"
       className={`${geist.variable} ${geistMono.variable} ${cormorant.variable} antialiased`}
+      style={{ position: 'relative' }}
       suppressHydrationWarning
     >
-      <body className="min-h-[100dvh] bg-vellum text-ink selection:bg-rubric/20 selection:text-rubric">
+      <body
+        className="min-h-[100dvh] bg-vellum text-ink selection:bg-rubric/20 selection:text-rubric"
+        style={{ position: 'relative' }}
+      >
         <ScrollRubric />
         <SiteHeader />
         {children}
