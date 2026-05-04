@@ -104,7 +104,7 @@ export function ManifestoSequence({ frames }: { frames: Frame[] }) {
       ref={ref}
       aria-label="Manifesto sequence"
       className="relative"
-      style={{ height: `${count * 100}vh` }}
+      style={{ position: 'relative', height: `${count * 100}vh` }}
     >
       <div className="sticky top-0 flex h-[100dvh] items-stretch overflow-hidden">
         {frames.map((frame, i) => (

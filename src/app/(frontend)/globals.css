@@ -36,6 +36,7 @@
 
 html,
 body {
+  position: relative; /* Framer's useScroll wants a non-static scroll container */
   font-feature-settings: 'ss01', 'ss02', 'cv11';
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
