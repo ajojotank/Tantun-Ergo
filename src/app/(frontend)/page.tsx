@@ -132,14 +132,16 @@ export default async function Home() {
         </div>
       </section>
 
-      <GildedRule className="pt-12" />
-
-      {/* Manifesto sequence (scroll-scrubbed) */}
+      {/* Manifesto sequence (scroll-scrubbed) — only renders when frames are populated.
+          GildedRule is bound to it so we never get back-to-back rules over an empty void. */}
       {seq.enabled && (seq.frames?.length ?? 0) > 0 ? (
-        <ManifestoSequence frames={seq.frames as never} />
+        <>
+          <GildedRule className="pt-16" />
+          <ManifestoSequence frames={seq.frames as never} />
+        </>
       ) : null}
 
-      <GildedRule className="py-12" />
+      <GildedRule className="py-16" />
 
       {/* Three pillar plates */}
       <section className="mx-auto w-full max-w-7xl px-5 py-12 sm:px-8 md:py-20">
@@ -186,7 +188,7 @@ export default async function Home() {
         </SectionReveal>
       </section>
 
-      <GildedRule className="py-12" />
+      <GildedRule className="py-16" />
 
       {/* Editorial primer band */}
       <section className="mx-auto w-full max-w-7xl px-5 pb-24 sm:px-8 md:pb-40">
