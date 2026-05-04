@@ -51,39 +51,44 @@ export default async function Home() {
     <main className="relative isolate">
       {/* Hero — full-bleed image with text overlay */}
       <section className="relative isolate overflow-hidden">
-        {/* Background: image if present, otherwise atmospheric gradient placeholder */}
+        {/* Background: image if present, otherwise atmospheric gradient placeholder.
+            The image gets a slow Ken-Burns zoom (CSS keyframes) so the hero
+            feels like it's breathing rather than holding still. */}
         <div className="absolute inset-0 -z-10">
-          {heroImageURL ? (
-            <Image
-              src={heroImageURL}
-              alt={(hero.image as ImageDoc)?.alt ?? ''}
-              fill
-              priority
-              sizes="100vw"
-              className="object-cover"
-            />
-          ) : (
-            <div
-              className="h-full w-full"
-              style={{
-                background:
-                  'radial-gradient(80% 60% at 70% 25%, rgba(176,138,62,0.45) 0%, transparent 60%), radial-gradient(70% 50% at 25% 80%, rgba(140,42,42,0.25) 0%, transparent 70%), linear-gradient(180deg, rgba(31,51,88,0.55), rgba(12,10,8,0.95))',
-              }}
-            />
-          )}
-          {/* Gradient veil — anchors text legibility in the lower-left
-              quadrant where the headline sits, while letting the cathedral
-              read clearly in the upper-right. Two layered gradients:
-                1. radial dark anchor at bottom-left (the text zone)
-                2. soft horizontal floor along the very bottom for the
-                   subhead + CTAs to contrast against. */}
+          <div className="absolute inset-0 hero-kenburns will-change-transform">
+            {heroImageURL ? (
+              <Image
+                src={heroImageURL}
+                alt={(hero.image as ImageDoc)?.alt ?? ''}
+                fill
+                priority
+                sizes="100vw"
+                className="object-cover"
+              />
+            ) : (
+              <div
+                className="h-full w-full"
+                style={{
+                  background:
+                    'radial-gradient(80% 60% at 70% 25%, rgba(176,138,62,0.45) 0%, transparent 60%), radial-gradient(70% 50% at 25% 80%, rgba(140,42,42,0.25) 0%, transparent 70%), linear-gradient(180deg, rgba(31,51,88,0.55), rgba(12,10,8,0.95))',
+                }}
+              />
+            )}
+          </div>
+          {/* Gradient veil — four layers stacked for legibility on every
+              part of the cathedral image:
+                1. universal mid-darkening so text never fights gilt details
+                2. radial anchor in the lower-left where the headline sits
+                3. bottom-floor for the subhead + CTAs
+                4. top-stripe so the header nav has a base to read against */}
           <div
             className="absolute inset-0"
             style={{
               background: [
-                'radial-gradient(120% 90% at 0% 100%, rgba(12,10,8,0.92) 0%, rgba(12,10,8,0.55) 35%, rgba(12,10,8,0.0) 65%)',
+                'linear-gradient(180deg, rgba(12,10,8,0.30) 0%, rgba(12,10,8,0.15) 40%, rgba(12,10,8,0.45) 100%)',
+                'radial-gradient(120% 90% at 0% 100%, rgba(12,10,8,0.85) 0%, rgba(12,10,8,0.45) 38%, rgba(12,10,8,0.0) 70%)',
                 'linear-gradient(180deg, rgba(12,10,8,0) 55%, rgba(12,10,8,0.55) 100%)',
-                'linear-gradient(180deg, rgba(12,10,8,0.35) 0%, rgba(12,10,8,0) 18%)',
+                'linear-gradient(180deg, rgba(12,10,8,0.55) 0%, rgba(12,10,8,0) 22%)',
               ].join(', '),
             }}
           />
@@ -99,7 +104,17 @@ export default async function Home() {
               </RevealItem>
             ) : null}
             <RevealItem>
-              <h1 className="mt-6 font-display text-[clamp(3rem,8vw,6.5rem)] leading-[0.92] tracking-tight text-vellum">
+              <h1
+                className="mt-6 font-display text-[clamp(3rem,8vw,6.5rem)] leading-[0.92] tracking-tight text-vellum"
+                style={{
+                  // Backup contrast: a soft dark glow under the cream type
+                  // means even the parts of the headline crossing the bright
+                  // gilt cathedral remain legible without re-darkening the
+                  // image more than the veil already does.
+                  textShadow:
+                    '0 2px 18px rgba(12,10,8,0.55), 0 1px 2px rgba(12,10,8,0.65)',
+                }}
+              >
                 {dropCap ? <IlluminatedDropCap>{dropCap}</IlluminatedDropCap> : null}
                 {dropCapTail}
                 <br />
@@ -114,7 +129,10 @@ export default async function Home() {
             </RevealItem>
             {hero.subheadline ? (
               <RevealItem>
-                <p className="mt-8 max-w-[55ch] text-base leading-relaxed text-vellum/80 sm:text-lg">
+                <p
+                  className="mt-8 max-w-[55ch] text-base leading-relaxed text-vellum/85 sm:text-lg"
+                  style={{ textShadow: '0 1px 12px rgba(12,10,8,0.55)' }}
+                >
                   {hero.subheadline}
                 </p>
               </RevealItem>
@@ -162,7 +180,8 @@ export default async function Home() {
             </h2>
           </RevealItem>
           <RevealItem className="md:col-span-12">
-            <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-3">
+            <SectionReveal className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-3">
+              <RevealItem>
               <PillarPlate
                 index="I"
                 name={pillars.atlas?.title ?? 'Atlas'}
@@ -171,6 +190,8 @@ export default async function Home() {
                 tone="rubric"
                 imageURL={imageURL(pillars.atlas?.image)}
               />
+              </RevealItem>
+              <RevealItem>
               <PillarPlate
                 index="II"
                 name={pillars.doctrine?.title ?? 'Doctrine'}
@@ -179,6 +200,8 @@ export default async function Home() {
                 tone="lapis"
                 imageURL={imageURL(pillars.doctrine?.image)}
               />
+              </RevealItem>
+              <RevealItem>
               <PillarPlate
                 index="III"
                 name={pillars.catechist?.title ?? 'Catechist'}
@@ -187,7 +210,8 @@ export default async function Home() {
                 tone="gilt"
                 imageURL={imageURL(pillars.catechist?.image)}
               />
-            </div>
+              </RevealItem>
+            </SectionReveal>
           </RevealItem>
         </SectionReveal>
       </section>

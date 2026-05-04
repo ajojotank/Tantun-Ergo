@@ -23,7 +23,7 @@ export function SiteHeader() {
     ? 'absolute inset-x-0 top-0 z-20'
     : 'relative'
   const navTone = overDark
-    ? 'text-vellum/70 hover:text-gilt'
+    ? 'text-vellum/85 hover:text-gilt [text-shadow:0_1px_8px_rgba(12,10,8,0.7)]'
     : 'text-ink-soft hover:text-ink'
   const aboutPanel = overDark
     ? 'border-vellum/10 bg-ink/85 backdrop-blur'
