@@ -32,19 +32,47 @@ function FrameLayer({
   frame,
   i,
   count,
-  activeIndex,
   scrollYProgress,
 }: {
   frame: Frame
   i: number
   count: number
-  activeIndex: MotionValue<number>
   scrollYProgress: MotionValue<number>
 }) {
-  const opacity = useTransform(activeIndex, (idx) => (idx === i ? 1 : 0))
+  // Frame opacity: was a hard binary (1 when active, 0 otherwise) which
+  // produced an instant flip at boundaries AND required an overlay band to
+  // slide up through the last frame at section exit. Now each frame
+  // cross-fades with its neighbours at slot boundaries, and the final frame
+  // dissolves its image to transparent at section end so the body's vellum
+  // shows through naturally — no rising horizontal seam.
+  const opacity = useTransform(scrollYProgress, (v) => {
+    const slot = 1 / count
+    const start = i * slot
+    const end = start + slot
+    const fade = slot * 0.2 // 20% of a slot for cross-fade lead-in/out
+    const isLast = i === count - 1
+    const exitStart = 0.93 // last frame starts dissolving here
+
+    // Lead-in: first frame is already at 1 at v=0; later frames cross-fade
+    // in with the preceding frame's fade-out.
+    if (i > 0) {
+      if (v < start - fade) return 0
+      if (v < start) return (v - (start - fade)) / fade
+    }
+
+    // Trailing fade-out
+    if (isLast) {
+      // Hold until 93% of the entire section, then dissolve to vellum.
+      if (v < exitStart) return 1
+      if (v >= 1) return 0
+      return 1 - (v - exitStart) / (1 - exitStart)
+    }
+    if (v < end - fade) return 1
+    if (v < end) return 1 - (v - (end - fade)) / fade
+    return 0
+  })
+
   // Ken-Burns scale tied to local progress within this frame's slot.
-  // Each frame holds for 1/count of the manifesto scroll; scale slowly grows
-  // 1.0 → 1.06 across that hold, so the active frame is always alive.
   const imageScale = useTransform(scrollYProgress, (v) => {
     const local = Math.max(0, Math.min(1, v * count - i))
     return 1 + local * 0.06
@@ -137,7 +165,6 @@ export function ManifestoSequence({ frames }: { frames: Frame[] }) {
             frame={frame}
             i={i}
             count={count}
-            activeIndex={activeIndex}
             scrollYProgress={scrollYProgress}
           />
         ))}
@@ -149,18 +176,6 @@ export function ManifestoSequence({ frames }: { frames: Frame[] }) {
           ))}
         </div>
       </div>
-
-      {/* Exit fade — sits at the absolute bottom of the (count*100vh) outer
-          section. Tall + smooth gradient (no muddy mid-stop) so the final
-          frame dissolves into vellum gracefully rather than clipping. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[60vh]"
-        style={{
-          background:
-            'linear-gradient(180deg, rgba(12,10,8,0) 0%, rgba(12,10,8,0.25) 55%, rgba(251,246,234,0.92) 88%, var(--color-vellum) 100%)',
-        }}
-      />
     </section>
   )
 }
