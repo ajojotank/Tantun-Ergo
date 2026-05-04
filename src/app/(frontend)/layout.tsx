@@ -1,6 +1,11 @@
 import type { Metadata, Viewport } from 'next'
 import { Cormorant_Garamond, Geist, Geist_Mono } from 'next/font/google'
 
+import { ScrollRubric } from './components/scroll-rubric'
+import { SiteFooter } from './components/site-footer'
+import { SiteHeader } from './components/site-header'
+import { payload } from '@/lib/payload'
+
 import './globals.css'
 
 const cormorant = Cormorant_Garamond({
@@ -9,37 +14,26 @@ const cormorant = Cormorant_Garamond({
   weight: ['300', '400', '500'],
   style: ['normal', 'italic'],
 })
+const geist = Geist({ variable: '--font-sans', subsets: ['latin'] })
+const geistMono = Geist_Mono({ variable: '--font-mono', subsets: ['latin'] })
 
-const geist = Geist({
-  variable: '--font-sans',
-  subsets: ['latin'],
-})
-
-const geistMono = Geist_Mono({
-  variable: '--font-mono',
-  subsets: ['latin'],
-})
-
-export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000',
-  ),
-  title: {
-    default: 'Tantum Ergo — Catholic formation, rendered in the round',
-    template: '%s · Tantum Ergo',
-  },
-  description:
-    'A digital Sistine Chapel. The Miracle Atlas, a doctrine LMS, and an AI catechist — held inside one reverent surface.',
-  applicationName: 'Tantum Ergo',
-  authors: [{ name: 'Tantum Ergo Studio' }],
-  openGraph: {
-    title: 'Tantum Ergo',
-    description:
-      'Catholic formation rendered in the round — Miracle Atlas, doctrine LMS, AI catechist.',
-    type: 'website',
-    locale: 'en_ZA',
-  },
-  twitter: { card: 'summary_large_image' },
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await (await payload()).findGlobal({ slug: 'settings' })
+  return {
+    metadataBase: new URL(
+      process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000',
+    ),
+    title: { default: settings.siteTitle, template: `%s · ${settings.siteTitle}` },
+    description: settings.siteTagline,
+    applicationName: settings.siteTitle,
+    openGraph: {
+      title: settings.siteTitle,
+      description: settings.siteTagline ?? undefined,
+      type: 'website',
+      locale: 'en_ZA',
+    },
+    twitter: { card: 'summary_large_image' },
+  }
 }
 
 export const viewport: Viewport = {
@@ -64,7 +58,10 @@ export default function FrontendRootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-[100dvh] bg-vellum text-ink selection:bg-rubric/20 selection:text-rubric">
+        <ScrollRubric />
+        <SiteHeader />
         {children}
+        <SiteFooter />
       </body>
     </html>
   )
