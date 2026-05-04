@@ -12,16 +12,13 @@ const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
 export async function generateMetadata({ params }: Args) {
   const { slug } = await params
   const res = await (await payload()).find({
-    collection: 'pages',
-    where: { and: [{ slug: { equals: slug } }, { pageType: { equals: 'reading-article' } }] },
+    collection: 'articles',
+    where: { slug: { equals: slug } },
     limit: 1,
   })
   const doc = res.docs[0]
   if (!doc) return { title: 'Not found' }
-  return {
-    title: doc.title,
-    description: doc.excerpt ?? undefined,
-  }
+  return { title: doc.title, description: doc.excerpt ?? undefined }
 }
 
 export default async function ReadingArticle({ params }: Args) {
@@ -29,11 +26,10 @@ export default async function ReadingArticle({ params }: Args) {
   const { isEnabled: isDraft } = await draftMode()
 
   const res = await (await payload()).find({
-    collection: 'pages',
+    collection: 'articles',
     where: {
       and: [
         { slug: { equals: slug } },
-        { pageType: { equals: 'reading-article' } },
         ...(isDraft ? [] : [{ _status: { equals: 'published' as const } }]),
       ],
     },

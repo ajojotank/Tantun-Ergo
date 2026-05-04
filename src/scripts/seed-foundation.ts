@@ -1,4 +1,3 @@
-// src/scripts/seed-foundation.ts
 import 'dotenv/config'
 import { getPayload } from 'payload'
 
@@ -13,107 +12,110 @@ async function main() {
     data: {
       siteTitle: 'Tantum Ergo',
       siteTagline: 'A digital Sistine Chapel for Catholic formation.',
-      footerCopy: {
-        root: {
-          type: 'root',
-          version: 1,
-          format: '',
-          indent: 0,
-          direction: null,
-          children: [
-            {
-              type: 'paragraph',
-              version: 1,
-              format: '',
-              indent: 0,
-              direction: null,
-              children: [
-                {
-                  type: 'text',
-                  version: 1,
-                  format: 0,
-                  detail: 0,
-                  mode: 'normal',
-                  style: '',
-                  text:
-                    'Tantum Ergo is a citation-bound formation surface. Mobile-first. Built to last centuries.',
-                },
-              ],
-            },
-          ],
-        },
-      } as never,
-      catechistRateLimit: { requestsPerHour: 20, refusalMessage: undefined },
+      footerCopy: lexicalLine(
+        'Tantum Ergo is a citation-bound formation surface. Mobile-first. Built to last centuries.',
+      ),
+      catechistRateLimit: { requestsPerHour: 20 },
       showSampleBadges: true,
     },
   })
 
-  payload.logger.info('Seeding ManifestoSequence (with placeholder frames)…')
+  payload.logger.info('Seeding HomePage global…')
   await payload.updateGlobal({
-    slug: 'manifesto-sequence',
+    slug: 'home-page',
     data: {
-      enabled: true,
-      frames: [
-        {
-          eyebrow: 'I. Threshold',
-          caption: lexicalLine('We begin not with information, but with reverence.'),
+      hero: {
+        eyebrow: 'In Hoc Signo · MMXXVI',
+        headlineLine1: 'A digital',
+        headlineItalic: 'Sistine Chapel',
+        headlineLine2: 'for Catholic formation.',
+        subheadline:
+          'Tantum Ergo holds three instruments inside one reverent surface — a cartographic Miracle Atlas, a long-form Doctrine LMS, and an AI Catechist bound to citation. Mobile-first. Scroll-scrubbed. Built to last centuries.',
+        ctaPrimaryLabel: 'Begin pilgrimage',
+        ctaPrimaryHref: '/atlas',
+        ctaSecondaryLabel: 'Read the manifesto',
+        ctaSecondaryHref: '/manifesto',
+      },
+      manifestoSequence: {
+        enabled: true,
+        frames: [
+          { eyebrow: 'I. Threshold', caption: lexicalLine('We begin not with information, but with reverence.') },
+          { eyebrow: 'II. Witness', caption: lexicalLine('Two thousand years of testimony, mapped to the centuries.') },
+          { eyebrow: 'III. Page', caption: lexicalLine('Doctrine, paced like a breviary — read, watched, listened to.') },
+          { eyebrow: 'IV. Voice', caption: lexicalLine('A catechist that cites; that never invents.') },
+        ],
+      },
+      pillars: {
+        eyebrow: 'Three pillars',
+        headlineLine1: 'Cartography. Formation.',
+        headlineItalic: 'Dialogue.',
+        atlas: {
+          title: 'Atlas',
+          intent:
+            'A 3D cartography of approved miracles — Eucharistic, Marian, healings — anchored to coordinates, dates, and the ecclesial record.',
+          href: '/atlas',
         },
-        {
-          eyebrow: 'II. Witness',
-          caption: lexicalLine('Two thousand years of testimony, mapped to the centuries.'),
+        doctrine: {
+          title: 'Doctrine',
+          intent: 'A breviary-paced LMS over councils, encyclicals, the Catechism.',
+          href: '/doctrine',
         },
-        {
-          eyebrow: 'III. Page',
-          caption: lexicalLine('Doctrine, paced like a breviary — read, watched, listened to.'),
+        catechist: {
+          title: 'Catechist',
+          intent: 'An interlocutor bound to citation. Cites; never invents.',
+          href: '/catechist',
         },
-        {
-          eyebrow: 'IV. Voice',
-          caption: lexicalLine('A catechist that cites; that never invents.'),
-        },
-      ],
+      },
+      readingBand: {
+        eyebrow: 'From the reading room',
+        emptyMessage: 'Reading room opens soon.',
+        limit: 6,
+      },
     },
   })
 
-  await ensurePage(payload, 'home', 'home-block', 'Home block (filler)', '[Sample]')
-  await ensurePage(
-    payload,
-    'manifesto',
-    'manifesto',
-    'A digital Sistine Chapel.',
-    'Tantum Ergo is a vow disguised as a website. Three instruments — Atlas, Doctrine, Catechist — held under one threshold. Mobile-first. Scroll-scrubbed. Cited; never invented.',
-  )
-  await ensurePage(
-    payload,
-    'credits',
-    'credits',
-    'Sources & ecclesial review',
-    'Sources, attributions, and ecclesial review notes will appear here as the content team curates them. The Catechism (Vatican English) is © Libreria Editrice Vaticana; explicit educational-use permission must be confirmed before public launch. Bible filler in the Catechist corpus uses the Douay-Rheims translation (public domain).',
-  )
+  payload.logger.info('Seeding ManifestoPage global…')
+  await payload.updateGlobal({
+    slug: 'manifesto-page',
+    data: {
+      eyebrow: 'Manifesto',
+      title: 'A digital Sistine Chapel.',
+      body: lexicalLine(
+        'Tantum Ergo is a vow disguised as a website. Three instruments — Atlas, Doctrine, Catechist — held under one threshold. Mobile-first. Scroll-scrubbed. Cited; never invented.',
+      ),
+    },
+  })
 
-  await ensurePage(
-    payload,
-    'lumen-de-lumine',
-    'reading-article',
-    'Lumen de Lumine [Sample]',
-    'Light from light, true God from true God — a brief reading on the Nicene confession of the Son’s consubstantiality with the Father.',
-    {
-      excerpt:
-        'The Nicene fathers chose homoousios — “of one substance” — over the gentler homoiousios. One iota; an empire of meaning.',
-      publishedAt: new Date('2026-04-21').toISOString(),
+  payload.logger.info('Seeding CreditsPage global…')
+  await payload.updateGlobal({
+    slug: 'credits-page',
+    data: {
+      eyebrow: 'Credits',
+      title: 'Sources & ecclesial review',
+      body: lexicalLine(
+        'Sources, attributions, and ecclesial review notes will appear here as the content team curates them. The Catechism (Vatican English) is © Libreria Editrice Vaticana; explicit educational-use permission must be confirmed before public launch. Bible filler in the Catechist corpus uses the Douay-Rheims translation (public domain).',
+      ),
     },
-  )
-  await ensurePage(
-    payload,
-    'on-the-eucharistic-real-presence',
-    'reading-article',
-    'On the Eucharistic Real Presence [Sample]',
-    'A primer on the Catholic teaching of the substantial presence of Christ — Body, Blood, soul, and divinity — under the species of bread and wine.',
-    {
-      excerpt:
-        'The substance changes; the accidents remain. This is not a metaphor; it is what the Church confesses.',
-      publishedAt: new Date('2026-04-28').toISOString(),
-    },
-  )
+  })
+
+  await ensureArticle(payload, {
+    slug: 'lumen-de-lumine',
+    title: 'Lumen de Lumine [Sample]',
+    excerpt:
+      'The Nicene fathers chose homoousios — “of one substance” — over the gentler homoiousios. One iota; an empire of meaning.',
+    bodyText:
+      'Light from light, true God from true God — a brief reading on the Nicene confession of the Son’s consubstantiality with the Father.',
+    publishedAt: '2026-04-21',
+  })
+  await ensureArticle(payload, {
+    slug: 'on-the-eucharistic-real-presence',
+    title: 'On the Eucharistic Real Presence [Sample]',
+    excerpt:
+      'The substance changes; the accidents remain. This is not a metaphor; it is what the Church confesses.',
+    bodyText:
+      'A primer on the Catholic teaching of the substantial presence of Christ — Body, Blood, soul, and divinity — under the species of bread and wine.',
+    publishedAt: '2026-04-28',
+  })
 
   payload.logger.info('Seed complete.')
   process.exit(0)
@@ -143,40 +145,42 @@ function lexicalLine(text: string) {
   } as never
 }
 
-type EnsureExtras = { excerpt?: string; publishedAt?: string }
+type ArticleSeed = {
+  slug: string
+  title: string
+  excerpt: string
+  bodyText: string
+  publishedAt: string
+}
 
-async function ensurePage(
+async function ensureArticle(
   payload: Awaited<ReturnType<typeof getPayload>>,
-  slug: string,
-  pageType: 'home-block' | 'manifesto' | 'credits' | 'reading-article',
-  title: string,
-  bodyText: string,
-  extras: EnsureExtras = {},
+  seed: ArticleSeed,
 ) {
   const existing = await payload.find({
-    collection: 'pages',
-    where: { slug: { equals: slug } },
+    collection: 'articles',
+    where: { slug: { equals: seed.slug } },
     limit: 1,
   })
   const data = {
-    title,
-    slug,
-    pageType,
+    title: seed.title,
+    slug: seed.slug,
+    excerpt: seed.excerpt,
+    body: lexicalLine(seed.bodyText),
+    publishedAt: new Date(seed.publishedAt).toISOString(),
     _isSample: true,
-    body: lexicalLine(bodyText),
-    ...extras,
     _status: 'published' as const,
   }
   if (existing.docs[0]) {
     await payload.update({
-      collection: 'pages',
+      collection: 'articles',
       id: existing.docs[0].id,
       data,
     })
-    payload.logger.info(`Updated page ${slug}`)
+    payload.logger.info(`Updated article ${seed.slug}`)
   } else {
-    await payload.create({ collection: 'pages', data })
-    payload.logger.info(`Created page ${slug}`)
+    await payload.create({ collection: 'articles', data })
+    payload.logger.info(`Created article ${seed.slug}`)
   }
 }
 

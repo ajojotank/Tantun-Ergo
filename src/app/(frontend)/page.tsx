@@ -1,63 +1,72 @@
-// src/app/(frontend)/page.tsx
 import Link from 'next/link'
+import { draftMode } from 'next/headers'
 
+import { LivePreviewListener } from './components/live-preview-listener'
 import { MagneticCTA } from './components/magnetic-cta'
 import { ManifestoSequence } from './components/manifesto-sequence'
 import { PillarPlate } from './components/pillar-plate'
 import { RevealItem, SectionReveal } from './components/section-reveal'
 import { payload } from '@/lib/payload'
 
+const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
+
 export default async function Home() {
+  const { isEnabled: isDraft } = await draftMode()
   const p = await payload()
-  const [sequence, articles] = await Promise.all([
-    p.findGlobal({ slug: 'manifesto-sequence' }),
-    p.find({
-      collection: 'pages',
-      where: {
-        and: [
-          { pageType: { equals: 'reading-article' } },
-          { _status: { equals: 'published' } },
-        ],
-      },
-      limit: 6,
-      sort: '-publishedAt',
-    }),
-  ])
+  const home = await p.findGlobal({ slug: 'home-page', draft: isDraft })
+
+  const limit = home.readingBand?.limit ?? 6
+  const articles = await p.find({
+    collection: 'articles',
+    where: isDraft ? {} : { _status: { equals: 'published' } },
+    draft: isDraft,
+    limit,
+    sort: '-publishedAt',
+  })
+
+  const hero = home.hero ?? {}
+  const seq = home.manifestoSequence ?? {}
+  const pillars = home.pillars ?? {}
+  const reading = home.readingBand ?? {}
 
   return (
     <main className="relative isolate">
       {/* Hero */}
       <section className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-10 px-5 pt-16 pb-24 sm:px-8 md:grid-cols-12 md:gap-8 md:pt-28 md:pb-40">
         <SectionReveal className="md:col-span-7 md:pr-8">
-          <RevealItem>
-            <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-rubric">
-              In Hoc Signo · MMXXVI
-            </p>
-          </RevealItem>
+          {hero.eyebrow ? (
+            <RevealItem>
+              <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-rubric">
+                {hero.eyebrow}
+              </p>
+            </RevealItem>
+          ) : null}
           <RevealItem>
             <h1 className="mt-6 font-display text-[clamp(2.6rem,7.5vw,5.6rem)] leading-[0.92] tracking-tight text-ink">
-              A digital
+              {hero.headlineLine1}
               <br />
-              <em className="font-light italic text-rubric-deep">Sistine Chapel</em> for
+              <em className="font-light italic text-rubric-deep">{hero.headlineItalic}</em> {hero.headlineLine2 ? <></> : null}
               <br />
-              Catholic formation.
+              {hero.headlineLine2}
             </h1>
           </RevealItem>
-          <RevealItem>
-            <p className="mt-8 max-w-[58ch] text-base leading-relaxed text-ink-soft sm:text-lg">
-              Tantum Ergo holds three instruments inside one reverent surface — a cartographic{' '}
-              <span className="font-display italic text-ink">Miracle Atlas</span>, a long-form{' '}
-              <span className="font-display italic text-ink">Doctrine LMS</span>, and an AI{' '}
-              <span className="font-display italic text-ink">Catechist</span> bound to citation.
-              Mobile-first. Scroll-scrubbed. Built to last centuries.
-            </p>
-          </RevealItem>
+          {hero.subheadline ? (
+            <RevealItem>
+              <p className="mt-8 max-w-[58ch] text-base leading-relaxed text-ink-soft sm:text-lg">
+                {hero.subheadline}
+              </p>
+            </RevealItem>
+          ) : null}
           <RevealItem>
             <div className="mt-10 flex flex-wrap items-center gap-4">
-              <MagneticCTA href="/atlas">Begin pilgrimage</MagneticCTA>
-              <MagneticCTA href="/manifesto" intent="secondary">
-                Read the manifesto
-              </MagneticCTA>
+              {hero.ctaPrimaryLabel && hero.ctaPrimaryHref ? (
+                <MagneticCTA href={hero.ctaPrimaryHref}>{hero.ctaPrimaryLabel}</MagneticCTA>
+              ) : null}
+              {hero.ctaSecondaryLabel && hero.ctaSecondaryHref ? (
+                <MagneticCTA href={hero.ctaSecondaryHref} intent="secondary">
+                  {hero.ctaSecondaryLabel}
+                </MagneticCTA>
+              ) : null}
             </div>
           </RevealItem>
         </SectionReveal>
@@ -95,51 +104,52 @@ export default async function Home() {
               <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
                 Plate 01 · Oculus
               </p>
-              <p className="font-display text-sm italic text-ink-soft">
-                Lumen ad revelationem
-              </p>
+              <p className="font-display text-sm italic text-ink-soft">Lumen ad revelationem</p>
             </div>
           </div>
         </aside>
       </section>
 
       {/* Manifesto sequence (scroll-scrubbed) */}
-      {sequence.enabled && (sequence.frames?.length ?? 0) > 0 ? (
-        <ManifestoSequence frames={sequence.frames as never} />
+      {seq.enabled && (seq.frames?.length ?? 0) > 0 ? (
+        <ManifestoSequence frames={seq.frames as never} />
       ) : null}
 
       {/* Three pillar plates */}
       <section className="mx-auto w-full max-w-7xl px-5 py-20 sm:px-8 md:py-32">
         <SectionReveal className="grid grid-cols-1 gap-8 md:grid-cols-12 md:gap-8">
           <RevealItem className="md:col-span-12">
-            <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-rubric">
-              Three pillars
-            </p>
+            {pillars.eyebrow ? (
+              <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-rubric">
+                {pillars.eyebrow}
+              </p>
+            ) : null}
             <h2 className="mt-3 max-w-2xl font-display text-4xl leading-[0.98] tracking-tight text-ink md:text-6xl">
-              Cartography. Formation. <em className="italic text-rubric-deep">Dialogue.</em>
+              {pillars.headlineLine1}{' '}
+              <em className="italic text-rubric-deep">{pillars.headlineItalic}</em>
             </h2>
           </RevealItem>
           <RevealItem className="md:col-span-12">
             <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-[2fr_1fr_1fr]">
               <PillarPlate
                 index="I"
-                name="Atlas"
-                intent="A 3D cartography of approved miracles — Eucharistic, Marian, healings — anchored to coordinates, dates, and the ecclesial record."
-                href="/atlas"
+                name={pillars.atlas?.title ?? 'Atlas'}
+                intent={pillars.atlas?.intent ?? ''}
+                href={pillars.atlas?.href ?? '/atlas'}
                 tone="rubric"
               />
               <PillarPlate
                 index="II"
-                name="Doctrine"
-                intent="A breviary-paced LMS over councils, encyclicals, the Catechism."
-                href="/doctrine"
+                name={pillars.doctrine?.title ?? 'Doctrine'}
+                intent={pillars.doctrine?.intent ?? ''}
+                href={pillars.doctrine?.href ?? '/doctrine'}
                 tone="lapis"
               />
               <PillarPlate
                 index="III"
-                name="Catechist"
-                intent="An interlocutor bound to citation. Cites; never invents."
-                href="/catechist"
+                name={pillars.catechist?.title ?? 'Catechist'}
+                intent={pillars.catechist?.intent ?? ''}
+                href={pillars.catechist?.href ?? '/catechist'}
                 tone="gilt"
               />
             </div>
@@ -151,7 +161,7 @@ export default async function Home() {
       <section className="mx-auto w-full max-w-7xl px-5 pb-24 sm:px-8 md:pb-40">
         <div className="flex items-baseline justify-between">
           <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-rubric">
-            From the reading room
+            {reading.eyebrow ?? 'From the reading room'}
           </p>
           <Link
             href="/reading"
@@ -162,7 +172,7 @@ export default async function Home() {
         </div>
         {articles.docs.length === 0 ? (
           <p className="mt-12 font-display text-2xl italic text-ink-soft">
-            Reading room opens soon.
+            {reading.emptyMessage ?? 'Reading room opens soon.'}
           </p>
         ) : (
           <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -194,6 +204,8 @@ export default async function Home() {
           </div>
         )}
       </section>
+
+      {isDraft ? <LivePreviewListener serverURL={SERVER_URL} /> : null}
     </main>
   )
 }

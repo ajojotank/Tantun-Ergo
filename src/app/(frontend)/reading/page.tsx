@@ -15,13 +15,8 @@ export default async function ReadingIndex() {
   const { isEnabled: isDraft } = await draftMode()
 
   const articles = await (await payload()).find({
-    collection: 'pages',
-    where: {
-      and: [
-        { pageType: { equals: 'reading-article' } },
-        ...(isDraft ? [] : [{ _status: { equals: 'published' as const } }]),
-      ],
-    },
+    collection: 'articles',
+    where: isDraft ? {} : { _status: { equals: 'published' } },
     draft: isDraft,
     limit: 50,
     sort: '-publishedAt',

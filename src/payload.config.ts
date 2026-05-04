@@ -7,12 +7,14 @@ import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { buildConfig } from 'payload'
 import sharp from 'sharp'
 
+import { Articles } from './collections/Articles'
 import { Media } from './collections/Media'
-import { Pages } from './collections/Pages'
 import { Users } from './collections/Users'
 import { initRawTables } from './db/init-raw-tables'
+import { CreditsPage } from './globals/CreditsPage'
+import { HomePage } from './globals/HomePage'
+import { ManifestoPage } from './globals/ManifestoPage'
 import { Settings } from './globals/Settings'
-import { ManifestoSequence } from './globals/ManifestoSequence'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -53,32 +55,9 @@ export default buildConfig({
       description: 'Editorial control room for the Tantum Ergo formation platform.',
       titleSuffix: ' — Tantum Ergo',
     },
-    livePreview: {
-      url: ({ data, collectionConfig }) => {
-        if (collectionConfig?.slug !== 'pages') return serverURL
-        const slug = typeof data?.slug === 'string' ? data.slug : ''
-        const pageType = typeof data?.pageType === 'string' ? data.pageType : 'generic'
-        let path = ''
-        if (pageType === 'manifesto') path = '/manifesto'
-        else if (pageType === 'credits') path = '/credits'
-        else if (pageType === 'reading-article') path = `/reading/${slug}`
-        else if (slug && slug !== 'home') path = `/${slug}`
-        const params = new URLSearchParams({
-          path: path || '/',
-          previewSecret: process.env.PREVIEW_SECRET || '',
-        })
-        return `${serverURL}/next/preview?${params.toString()}`
-      },
-      collections: ['pages'],
-      breakpoints: [
-        { label: 'Mobile', name: 'mobile', width: 390, height: 844 },
-        { label: 'Tablet', name: 'tablet', width: 834, height: 1194 },
-        { label: 'Desktop', name: 'desktop', width: 1440, height: 900 },
-      ],
-    },
   },
-  collections: [Users, Media, Pages],
-  globals: [Settings, ManifestoSequence],
+  collections: [Users, Media, Articles],
+  globals: [Settings, HomePage, ManifestoPage, CreditsPage],
   cors: [serverURL].filter(Boolean),
   csrf: [serverURL].filter(Boolean),
   editor: lexicalEditor(),
