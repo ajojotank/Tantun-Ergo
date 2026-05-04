@@ -16,7 +16,8 @@
     "payload": "payload",
     "generate:types": "payload generate:types",
     "generate:importmap": "payload generate:importmap",
-    "seed:foundation": "tsx src/scripts/seed-foundation.ts"
+    "seed:foundation": "tsx src/scripts/seed-foundation.ts",
+    "migrate:media": "tsx src/scripts/migrate-media-to-supabase.ts"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "^3.84.1",
@@ -38,6 +39,7 @@
     "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
+    "@aws-sdk/client-s3": "^3.1041.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/nodemailer": "^8.0.0",
