@@ -1,6 +1,10 @@
+// src/app/(frontend)/page.tsx
+import Image from 'next/image'
 import Link from 'next/link'
 import { draftMode } from 'next/headers'
 
+import { GildedRule } from './components/gilded-rule'
+import { IlluminatedDropCap } from './components/illuminated-drop-cap'
 import { LivePreviewListener } from './components/live-preview-listener'
 import { MagneticCTA } from './components/magnetic-cta'
 import { ManifestoSequence } from './components/manifesto-sequence'
@@ -9,6 +13,14 @@ import { RevealItem, SectionReveal } from './components/section-reveal'
 import { payload } from '@/lib/payload'
 
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
+
+type ImageDoc = { url?: string | null; alt?: string | null } | null | undefined
+
+function imageURL(value: unknown): string | null {
+  if (!value || typeof value !== 'object') return null
+  const v = value as { url?: string | null }
+  return v.url ?? null
+}
 
 export default async function Home() {
   const { isEnabled: isDraft } = await draftMode()
@@ -29,94 +41,108 @@ export default async function Home() {
   const pillars = home.pillars ?? {}
   const reading = home.readingBand ?? {}
 
+  const heroImageURL = imageURL(hero.image)
+  const headline1 = hero.headlineLine1 ?? ''
+  // Pull off the first letter of headline1 for the drop cap; keep the remainder.
+  const dropCap = headline1.charAt(0).toUpperCase()
+  const dropCapTail = headline1.slice(1)
+
   return (
     <main className="relative isolate">
-      {/* Hero */}
-      <section className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-10 px-5 pt-16 pb-24 sm:px-8 md:grid-cols-12 md:gap-8 md:pt-28 md:pb-40">
-        <SectionReveal className="md:col-span-7 md:pr-8">
-          {hero.eyebrow ? (
-            <RevealItem>
-              <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-rubric">
-                {hero.eyebrow}
-              </p>
-            </RevealItem>
-          ) : null}
-          <RevealItem>
-            <h1 className="mt-6 font-display text-[clamp(2.6rem,7.5vw,5.6rem)] leading-[0.92] tracking-tight text-ink">
-              {hero.headlineLine1}
-              <br />
-              <em className="font-light italic text-rubric-deep">{hero.headlineItalic}</em> {hero.headlineLine2 ? <></> : null}
-              <br />
-              {hero.headlineLine2}
-            </h1>
-          </RevealItem>
-          {hero.subheadline ? (
-            <RevealItem>
-              <p className="mt-8 max-w-[58ch] text-base leading-relaxed text-ink-soft sm:text-lg">
-                {hero.subheadline}
-              </p>
-            </RevealItem>
-          ) : null}
-          <RevealItem>
-            <div className="mt-10 flex flex-wrap items-center gap-4">
-              {hero.ctaPrimaryLabel && hero.ctaPrimaryHref ? (
-                <MagneticCTA href={hero.ctaPrimaryHref}>{hero.ctaPrimaryLabel}</MagneticCTA>
-              ) : null}
-              {hero.ctaSecondaryLabel && hero.ctaSecondaryHref ? (
-                <MagneticCTA href={hero.ctaSecondaryHref} intent="secondary">
-                  {hero.ctaSecondaryLabel}
-                </MagneticCTA>
-              ) : null}
-            </div>
-          </RevealItem>
-        </SectionReveal>
-
-        <aside aria-hidden className="relative md:col-span-5">
-          <div
-            className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-altar)] bg-vellum-deep"
-            style={{ boxShadow: 'var(--shadow-altar)' }}
-          >
+      {/* Hero — full-bleed image with text overlay */}
+      <section className="relative isolate overflow-hidden">
+        {/* Background: image if present, otherwise atmospheric gradient placeholder */}
+        <div className="absolute inset-0 -z-10">
+          {heroImageURL ? (
+            <Image
+              src={heroImageURL}
+              alt={(hero.image as ImageDoc)?.alt ?? ''}
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover"
+            />
+          ) : (
             <div
-              className="absolute inset-0"
+              className="h-full w-full"
               style={{
                 background:
-                  'radial-gradient(80% 60% at 50% 18%, rgba(176,138,62,0.28) 0%, transparent 60%), linear-gradient(180deg, rgba(31,51,88,0.10), rgba(140,42,42,0.10))',
+                  'radial-gradient(80% 60% at 70% 25%, rgba(176,138,62,0.45) 0%, transparent 60%), radial-gradient(70% 50% at 25% 80%, rgba(140,42,42,0.25) 0%, transparent 70%), linear-gradient(180deg, rgba(31,51,88,0.55), rgba(12,10,8,0.95))',
               }}
             />
-            <div className="absolute inset-0 grid place-items-center">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div
-                  key={i}
-                  className="absolute rounded-full"
-                  style={{
-                    width: `${20 + i * 12}%`,
-                    aspectRatio: '1',
-                    border: '1px solid rgba(26,20,16,0.06)',
-                  }}
-                />
-              ))}
-              <div
-                className="h-3 w-3 rounded-full bg-rubric"
-                style={{ boxShadow: '0 0 0 6px rgba(140,42,42,0.18)' }}
-              />
-            </div>
-            <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-5">
-              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-                Plate 01 · Oculus
-              </p>
-              <p className="font-display text-sm italic text-ink-soft">Lumen ad revelationem</p>
-            </div>
-          </div>
-        </aside>
+          )}
+          {/* Gradient veil — keeps text readable, dark in lower-left, fades upper-right */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                'linear-gradient(115deg, rgba(12,10,8,0.85) 0%, rgba(12,10,8,0.55) 35%, rgba(12,10,8,0.15) 65%, rgba(12,10,8,0.0) 100%)',
+            }}
+          />
+          {/* Bottom fade so reveal of next section is graceful */}
+          <div
+            className="absolute inset-x-0 bottom-0 h-40"
+            style={{
+              background:
+                'linear-gradient(180deg, rgba(251,246,234,0) 0%, var(--color-vellum) 100%)',
+            }}
+          />
+        </div>
+
+        <div className="mx-auto flex min-h-[100dvh] w-full max-w-7xl flex-col justify-end px-5 pb-20 pt-32 sm:px-8 sm:pb-28 md:min-h-[92dvh] md:pb-40 md:pt-48">
+          <SectionReveal className="max-w-3xl text-vellum">
+            {hero.eyebrow ? (
+              <RevealItem>
+                <p className="font-mono text-[11px] uppercase tracking-[0.32em] text-gilt">
+                  {hero.eyebrow}
+                </p>
+              </RevealItem>
+            ) : null}
+            <RevealItem>
+              <h1 className="mt-6 font-display text-[clamp(3rem,8vw,6.5rem)] leading-[0.92] tracking-tight text-vellum">
+                {dropCap ? <IlluminatedDropCap>{dropCap}</IlluminatedDropCap> : null}
+                {dropCapTail}
+                <br />
+                <em className="font-light italic text-gilt">{hero.headlineItalic}</em>{' '}
+                {hero.headlineLine2 ? (
+                  <span className="font-display">{hero.headlineLine2}</span>
+                ) : null}
+              </h1>
+            </RevealItem>
+            {hero.subheadline ? (
+              <RevealItem>
+                <p className="mt-8 max-w-[55ch] text-base leading-relaxed text-vellum/80 sm:text-lg">
+                  {hero.subheadline}
+                </p>
+              </RevealItem>
+            ) : null}
+            <RevealItem>
+              <div className="mt-10 flex flex-wrap items-center gap-4">
+                {hero.ctaPrimaryLabel && hero.ctaPrimaryHref ? (
+                  <MagneticCTA href={hero.ctaPrimaryHref}>{hero.ctaPrimaryLabel}</MagneticCTA>
+                ) : null}
+                {hero.ctaSecondaryLabel && hero.ctaSecondaryHref ? (
+                  <MagneticCTA href={hero.ctaSecondaryHref} intent="secondary">
+                    {hero.ctaSecondaryLabel}
+                  </MagneticCTA>
+                ) : null}
+              </div>
+            </RevealItem>
+          </SectionReveal>
+        </div>
       </section>
+
+      <GildedRule className="pt-12" />
 
       {/* Manifesto sequence (scroll-scrubbed) */}
       {seq.enabled && (seq.frames?.length ?? 0) > 0 ? (
         <ManifestoSequence frames={seq.frames as never} />
       ) : null}
 
+      <GildedRule className="py-12" />
+
       {/* Three pillar plates */}
-      <section className="mx-auto w-full max-w-7xl px-5 py-20 sm:px-8 md:py-32">
+      <section className="mx-auto w-full max-w-7xl px-5 py-12 sm:px-8 md:py-20">
         <SectionReveal className="grid grid-cols-1 gap-8 md:grid-cols-12 md:gap-8">
           <RevealItem className="md:col-span-12">
             {pillars.eyebrow ? (
@@ -130,13 +156,14 @@ export default async function Home() {
             </h2>
           </RevealItem>
           <RevealItem className="md:col-span-12">
-            <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-[2fr_1fr_1fr]">
+            <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-3">
               <PillarPlate
                 index="I"
                 name={pillars.atlas?.title ?? 'Atlas'}
                 intent={pillars.atlas?.intent ?? ''}
                 href={pillars.atlas?.href ?? '/atlas'}
                 tone="rubric"
+                imageURL={imageURL(pillars.atlas?.image)}
               />
               <PillarPlate
                 index="II"
@@ -144,6 +171,7 @@ export default async function Home() {
                 intent={pillars.doctrine?.intent ?? ''}
                 href={pillars.doctrine?.href ?? '/doctrine'}
                 tone="lapis"
+                imageURL={imageURL(pillars.doctrine?.image)}
               />
               <PillarPlate
                 index="III"
@@ -151,11 +179,14 @@ export default async function Home() {
                 intent={pillars.catechist?.intent ?? ''}
                 href={pillars.catechist?.href ?? '/catechist'}
                 tone="gilt"
+                imageURL={imageURL(pillars.catechist?.image)}
               />
             </div>
           </RevealItem>
         </SectionReveal>
       </section>
+
+      <GildedRule className="py-12" />
 
       {/* Editorial primer band */}
       <section className="mx-auto w-full max-w-7xl px-5 pb-24 sm:px-8 md:pb-40">
