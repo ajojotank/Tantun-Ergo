@@ -1,7 +1,7 @@
-// src/app/(frontend)/_components/pillar-plate.tsx
 'use client'
 
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useRef } from 'react'
 
@@ -13,12 +13,14 @@ export function PillarPlate({
   intent,
   href,
   tone,
+  imageURL,
 }: {
   index: 'I' | 'II' | 'III'
   name: string
   intent: string
   href: string
   tone: 'rubric' | 'lapis' | 'gilt'
+  imageURL?: string | null
 }) {
   const ref = useRef<HTMLAnchorElement>(null)
   const px = useMotionValue(0)
@@ -58,20 +60,74 @@ export function PillarPlate({
         href={href}
         onPointerMove={onMove}
         onPointerLeave={onLeave}
-        className={`group relative block aspect-[4/5] overflow-hidden rounded-[var(--radius-altar)] bg-gradient-to-br ${palette} p-6 ring-1 ring-ink/10 transition-shadow duration-300 hover:shadow-altar`}
+        className={`group relative block aspect-[4/5] overflow-hidden rounded-[var(--radius-altar)] bg-gradient-to-br ${palette} ring-1 ring-ink/10 transition-shadow duration-300 hover:shadow-altar`}
       >
-        <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-ink-soft">
-          Plate {index}
-        </p>
-        <h3 className="mt-3 font-display text-3xl italic text-ink md:text-4xl">{name}</h3>
-        <p className="mt-3 max-w-[28ch] text-sm leading-relaxed text-ink-soft">{intent}</p>
-        <span
+        {/* Background image (if set) sits behind everything */}
+        {imageURL ? (
+          <Image
+            src={imageURL}
+            alt=""
+            fill
+            sizes="(min-width: 768px) 33vw, 100vw"
+            className="object-cover"
+          />
+        ) : null}
+
+        {/* Vignette overlay — keeps text legible regardless of image */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: imageURL
+              ? 'linear-gradient(180deg, rgba(12,10,8,0.05) 0%, rgba(12,10,8,0.55) 60%, rgba(12,10,8,0.85) 100%)'
+              : 'transparent',
+          }}
+        />
+
+        {/* Ornamental arched border — top */}
+        <svg
           aria-hidden
-          className="absolute bottom-6 left-6 inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] text-ink"
+          viewBox="0 0 100 12"
+          preserveAspectRatio="none"
+          className="absolute inset-x-0 top-0 h-3 w-full text-gilt"
         >
-          Enter
-          <span className="inline-block h-px w-6 bg-current opacity-50 transition-all duration-300 group-hover:w-12 group-hover:opacity-100" />
-        </span>
+          <path d="M0 12 Q 50 0 100 12" fill="currentColor" opacity="0.4" />
+        </svg>
+
+        {/* Content */}
+        <div className="relative flex h-full flex-col justify-between p-6">
+          <div>
+            <p
+              className={`font-mono text-[10px] uppercase tracking-[0.28em] ${
+                imageURL ? 'text-vellum/70' : 'text-ink-soft'
+              }`}
+            >
+              Plate {index}
+            </p>
+            <h3
+              className={`mt-3 font-display text-3xl italic md:text-4xl ${
+                imageURL ? 'text-vellum' : 'text-ink'
+              }`}
+            >
+              {name}
+            </h3>
+            <p
+              className={`mt-3 max-w-[28ch] text-sm leading-relaxed ${
+                imageURL ? 'text-vellum/80' : 'text-ink-soft'
+              }`}
+            >
+              {intent}
+            </p>
+          </div>
+          <span
+            aria-hidden
+            className={`inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] ${
+              imageURL ? 'text-vellum' : 'text-ink'
+            }`}
+          >
+            Enter
+            <span className="inline-block h-px w-6 bg-current opacity-50 transition-all duration-300 group-hover:w-12 group-hover:opacity-100" />
+          </span>
+        </div>
       </Link>
     </motion.span>
   )
