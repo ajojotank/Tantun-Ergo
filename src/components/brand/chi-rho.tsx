@@ -1,30 +1,29 @@
-// Reusable chi-rho monogram. Renders crisp at any size.
-// `size` prop controls pixel dimensions; defaults to inheriting font-size via 1em.
-import type { SVGProps } from 'react'
+// Brand chi-rho monogram — sources from `/public/chi-rho.svg` so the visual
+// art is a single file the design team controls. Rendered via CSS mask so
+// the glyph adopts `currentColor`, keeping all callers themable through text
+// color (e.g. `text-gilt`, `text-vellum`).
+import type { CSSProperties, HTMLAttributes } from 'react'
 
-export function ChiRho({
-  size = '1em',
-  ...rest
-}: SVGProps<SVGSVGElement> & { size?: string | number }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 64 64"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={3.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      {...rest}
-    >
-      {/* Chi (X) */}
-      <line x1="14" y1="14" x2="50" y2="50" />
-      <line x1="50" y1="14" x2="14" y2="50" />
-      {/* Rho (P): vertical stem + bowl on the upper right */}
-      <line x1="32" y1="14" x2="32" y2="58" />
-      <path d="M 32 14 Q 50 14 50 26 Q 50 38 32 38" fill="none" />
-    </svg>
-  )
+type Props = Omit<HTMLAttributes<HTMLSpanElement>, 'children'> & {
+  size?: string | number
+}
+
+export function ChiRho({ size = '1em', style, ...rest }: Props) {
+  const dim = typeof size === 'number' ? `${size}px` : size
+  const maskStyle: CSSProperties = {
+    display: 'inline-block',
+    width: dim,
+    height: dim,
+    backgroundColor: 'currentColor',
+    maskImage: 'url(/chi-rho.svg)',
+    maskRepeat: 'no-repeat',
+    maskPosition: 'center',
+    maskSize: 'contain',
+    WebkitMaskImage: 'url(/chi-rho.svg)',
+    WebkitMaskRepeat: 'no-repeat',
+    WebkitMaskPosition: 'center',
+    WebkitMaskSize: 'contain',
+    ...style,
+  }
+  return <span aria-hidden style={maskStyle} {...rest} />
 }

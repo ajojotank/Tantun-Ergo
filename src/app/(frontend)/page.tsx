@@ -103,9 +103,12 @@ export default async function Home() {
                 {dropCap ? <IlluminatedDropCap>{dropCap}</IlluminatedDropCap> : null}
                 {dropCapTail}
                 <br />
-                <em className="font-light italic text-gilt">{hero.headlineItalic}</em>{' '}
+                <em className="font-light italic text-gilt">{hero.headlineItalic}</em>
                 {hero.headlineLine2 ? (
-                  <span className="font-display">{hero.headlineLine2}</span>
+                  <>
+                    <br />
+                    <span className="font-display">{hero.headlineLine2}</span>
+                  </>
                 ) : null}
               </h1>
             </RevealItem>
