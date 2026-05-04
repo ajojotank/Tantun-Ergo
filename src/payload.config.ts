@@ -10,6 +10,7 @@ import sharp from 'sharp'
 import { Media } from './collections/Media'
 import { Pages } from './collections/Pages'
 import { Users } from './collections/Users'
+import { initRawTables } from './db/init-raw-tables'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -88,5 +89,8 @@ export default buildConfig({
     limits: {
       fileSize: 25_000_000,
     },
+  },
+  onInit: async (payload) => {
+    await initRawTables(payload)
   },
 })
