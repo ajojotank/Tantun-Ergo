@@ -44,7 +44,7 @@ const email = smtpReady
     })
   : undefined
 
-// Supabase Storage (S3-compatible). When all four creds are present, uploads
+// Supabase Storage (S3-compatible). When all five creds are present, uploads
 // to the `media` collection route to Supabase. Otherwise we leave local disk
 // as the backing store, which is fine for dev but should never ship to prod.
 const s3Bucket = process.env.SUPABASE_STORAGE_BUCKET
@@ -54,10 +54,31 @@ const s3AccessKeyId = process.env.SUPABASE_S3_ACCESS_KEY_ID
 const s3SecretAccessKey = process.env.SUPABASE_S3_SECRET_ACCESS_KEY
 const s3Ready = Boolean(s3Bucket && s3Endpoint && s3Region && s3AccessKeyId && s3SecretAccessKey)
 
+// Supabase Storage exposes two distinct endpoints for the same bucket:
+//   • S3-compatible API:   {project}.supabase.co/storage/v1/s3/{bucket}/{key}
+//     (used by the storage-s3 plugin for PUT/GET via AWS SDK; requires creds)
+//   • Public object URL:   {project}.supabase.co/storage/v1/object/public/{bucket}/{key}
+//     (anonymous-readable, browser-friendly, what we want in <img src>)
+// The s3Storage plugin defaults to writing the S3-API URL into media.url —
+// which a browser can't fetch. Derive the project base from the S3 endpoint
+// and override `generateFileURL` so docs get the public URL.
+const supabasePublicBase = s3Endpoint?.replace(/\/storage\/v1\/s3\/?$/, '')
+
 const plugins = s3Ready
   ? [
       s3Storage({
-        collections: { media: true },
+        collections: {
+          media: {
+            // Bucket is public + Media.read access is open, so the canonical
+            // Payload pattern (per plugin-cloud-storage README) is to bypass
+            // the proxy and serve directly from the cloud host.
+            disablePayloadAccessControl: true,
+            // Map storage-s3's default S3-API URL into Supabase's public URL
+            // shape. Payload calls this once per filename per size variant.
+            generateFileURL: ({ filename }) =>
+              `${supabasePublicBase}/storage/v1/object/public/${s3Bucket}/${filename}`,
+          },
+        },
         bucket: s3Bucket!,
         config: {
           endpoint: s3Endpoint!,
