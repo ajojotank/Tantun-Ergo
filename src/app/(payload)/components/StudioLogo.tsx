@@ -1,5 +1,18 @@
 import { ChiRho } from '@/components/brand/chi-rho'
 
+// Login-screen + sidebar wordmark for the Tantum Ergo studio.
+//
+// Why no roundel: the previous dark-on-dark roundel disappeared into
+// Payload's dark-mode sidebar (which is itself near-black). A gilt chi-rho
+// without a tile contrasts cleanly on both modes — gilt sits mid-tone
+// enough that it's visible on cream (light) and on near-black (dark).
+//
+// Wordmark color uses --theme-elevation-1000 which Payload maps to:
+//   light: black
+//   dark:  white
+// so the type adapts to the active theme without us touching the
+// elevation tokens themselves (those break input contrast — see
+// project memory `runtime_gotchas`).
 export default function StudioLogo() {
   return (
     <div
@@ -10,28 +23,17 @@ export default function StudioLogo() {
         padding: '4px 0',
       }}
     >
-      <span
-        aria-hidden
-        style={{
-          display: 'grid',
-          placeItems: 'center',
-          width: 32,
-          height: 32,
-          borderRadius: '50%',
-          background: '#1a1410',
-          color: '#fbf6ea',
-        }}
-      >
-        <ChiRho size={16} />
+      <span aria-hidden style={{ color: '#b08a3e' }}>
+        <ChiRho size={26} />
       </span>
       <span
         style={{
-          fontFamily:
-            'Cormorant Garamond, ui-serif, Georgia, serif',
+          fontFamily: 'Cormorant Garamond, ui-serif, Georgia, serif',
           fontStyle: 'italic',
           fontSize: 22,
+          lineHeight: 1,
           letterSpacing: '-0.01em',
-          color: '#1a1410',
+          color: 'var(--theme-elevation-1000)',
         }}
       >
         Tantum Ergo

@@ -1,15 +1,63 @@
 /* Tantum Ergo studio overrides — keep minimal.
- * DO NOT override --theme-elevation-* tokens; doing so cracks input contrast.
- * Only safe-isolated brand bits and the accent color (rubric instead of purple). */
+ *
+ * DO NOT override --theme-elevation-* tokens; doing so cracks input
+ * contrast (Payload derives label/placeholder/border colors from them).
+ * Only safe-isolated brand bits + the success-accent palette swap.
+ *
+ * Payload re-defines --theme-success-* for dark mode under
+ * `html[data-theme='dark']`, so a :root-only override silently
+ * reverts in dark mode. We intentionally provide both, mirroring
+ * the same intensity-flip Payload's own palette uses (low number =
+ * pale in light / deep in dark, high number = deep in light / pale
+ * in dark). */
 
-/* Accent swap: Payload's default purple → our rubric red */
+/* ─── Light mode: deep liturgical rubric ─────────────────────────── */
 :root {
-  --theme-success-500: #8c2a2a;
-  --theme-success-600: #5e1a1a;
-  --theme-success-700: #4a1414;
+  --theme-success-50: #f6e8e8;
+  --theme-success-100: #ecd0d0;
+  --theme-success-150: #e0b0b0;
+  --theme-success-200: #d49090;
+  --theme-success-250: #c47070;
+  --theme-success-300: #b85c5c;
+  --theme-success-350: #a13838;
+  --theme-success-400: #962d2d;
+  --theme-success-450: #8f2c2c;
+  --theme-success-500: #8c2a2a; /* primary action / link */
+  --theme-success-550: #752222;
+  --theme-success-600: #5e1a1a; /* hover */
+  --theme-success-650: #501414;
+  --theme-success-700: #4a1414; /* active / pressed */
+  --theme-success-750: #3f1010;
+  --theme-success-800: #3a1010;
+  --theme-success-850: #320c0c;
+  --theme-success-900: #2a0c0c;
+  --theme-success-950: #1c0808;
 }
 
-/* Brand strip in the sidebar — gentle gilt accent rule under the logo */
+/* ─── Dark mode: brighter rubric so it carries on near-black ─────── */
+html[data-theme='dark'] {
+  --theme-success-50: #1c0808;
+  --theme-success-100: #2a0c0c;
+  --theme-success-150: #320c0c;
+  --theme-success-200: #3a1010;
+  --theme-success-250: #3f1010;
+  --theme-success-300: #4a1414;
+  --theme-success-350: #501414;
+  --theme-success-400: #5e1a1a;
+  --theme-success-450: #752222;
+  --theme-success-500: #c14545; /* primary action / link */
+  --theme-success-550: #cf6060;
+  --theme-success-600: #d97070; /* hover */
+  --theme-success-650: #e08080;
+  --theme-success-700: #e89090; /* active / pressed */
+  --theme-success-750: #eda5a5;
+  --theme-success-800: #f0b8b8;
+  --theme-success-850: #f3c8c8;
+  --theme-success-900: #f6e8e8;
+  --theme-success-950: #fbf6ea;
+}
+
+/* ─── Brand strip in the sidebar — gilt rule under the logo ─────── */
 .nav__header {
   position: relative;
 
@@ -24,17 +72,39 @@
     background: linear-gradient(
       90deg,
       transparent 0%,
-      rgba(176, 138, 62, 0.4) 50%,
+      rgba(176, 138, 62, 0.5) 50%,
       transparent 100%
     );
   }
 }
 
-/* Italic Cormorant on top-level admin headers */
+/* ─── Italic Cormorant on top-level admin headers ──────────────── */
 .collection-list__header h1,
 .global-edit__header h1,
 .dashboard__header h1 {
   font-family: 'Cormorant Garamond', ui-serif, Georgia, serif;
   font-style: italic;
   letter-spacing: -0.01em;
+}
+
+/* ─── Login screen — bring the brand into the auth surface ─────── */
+.template-minimal {
+  &::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.06;
+    background-image: url('/chi-rho.svg');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 60vmin auto;
+  }
+
+  /* Make sure form chrome paints above the watermark. */
+  & > * {
+    position: relative;
+    z-index: 1;
+  }
 }

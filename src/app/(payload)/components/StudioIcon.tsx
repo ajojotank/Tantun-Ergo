@@ -1,20 +1,17 @@
 import { ChiRho } from '@/components/brand/chi-rho'
 
+// Browser tab + admin nav icon. Same gilt mark as StudioLogo, no tile.
+// Visible on both light and dark theme sidebars.
 export default function StudioIcon() {
   return (
     <span
       aria-hidden
       style={{
-        display: 'grid',
-        placeItems: 'center',
-        width: 28,
-        height: 28,
-        borderRadius: '50%',
-        background: '#1a1410',
-        color: '#fbf6ea',
+        display: 'inline-flex',
+        color: '#b08a3e',
       }}
     >
-      <ChiRho size={14} />
+      <ChiRho size={22} />
     </span>
   )
 }
