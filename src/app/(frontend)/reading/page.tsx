@@ -1,6 +1,7 @@
-// src/app/(frontend)/reading/page.tsx
 import Link from 'next/link'
+import { draftMode } from 'next/headers'
 
+import { LivePreviewListener } from '../components/live-preview-listener'
 import { payload } from '@/lib/payload'
 
 export const metadata = {
@@ -8,15 +9,20 @@ export const metadata = {
   description: 'Editorial articles and meditations from the Tantum Ergo studio.',
 }
 
+const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
+
 export default async function ReadingIndex() {
+  const { isEnabled: isDraft } = await draftMode()
+
   const articles = await (await payload()).find({
     collection: 'pages',
     where: {
       and: [
         { pageType: { equals: 'reading-article' } },
-        { _status: { equals: 'published' } },
+        ...(isDraft ? [] : [{ _status: { equals: 'published' as const } }]),
       ],
     },
+    draft: isDraft,
     limit: 50,
     sort: '-publishedAt',
   })
@@ -24,7 +30,7 @@ export default async function ReadingIndex() {
   return (
     <main className="mx-auto w-full max-w-3xl px-5 py-16 sm:px-8 md:py-28">
       <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-rubric">
-        Reading room
+        Reading room{isDraft ? ' · Draft preview' : ''}
       </p>
       <h1 className="mt-3 font-display text-5xl italic leading-tight tracking-tight text-ink md:text-6xl">
         Articles &amp; meditations
@@ -62,6 +68,7 @@ export default async function ReadingIndex() {
           ))}
         </ul>
       )}
+      {isDraft ? <LivePreviewListener serverURL={SERVER_URL} /> : null}
     </main>
   )
 }

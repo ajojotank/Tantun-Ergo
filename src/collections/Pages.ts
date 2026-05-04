@@ -14,9 +14,18 @@ export const Pages: CollectionConfig = {
     livePreview: {
       url: ({ data }) => {
         const slug = typeof data?.slug === 'string' ? data.slug : ''
+        const pageType = typeof data?.pageType === 'string' ? data.pageType : 'generic'
+        let path = ''
+        if (pageType === 'manifesto') path = '/manifesto'
+        else if (pageType === 'credits') path = '/credits'
+        else if (pageType === 'reading-article') path = `/reading/${slug}`
+        else if (slug && slug !== 'home') path = `/${slug}`
         const base = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
-        const path = !slug || slug === 'home' ? '' : `/${slug}`
-        return `${base}${path}?preview=true`
+        const params = new URLSearchParams({
+          path: path || '/',
+          previewSecret: process.env.PREVIEW_SECRET || '',
+        })
+        return `${base}/next/preview?${params.toString()}`
       },
     },
   },

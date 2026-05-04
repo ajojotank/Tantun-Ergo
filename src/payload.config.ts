@@ -57,8 +57,17 @@ export default buildConfig({
       url: ({ data, collectionConfig }) => {
         if (collectionConfig?.slug !== 'pages') return serverURL
         const slug = typeof data?.slug === 'string' ? data.slug : ''
-        const path = !slug || slug === 'home' ? '' : `/${slug}`
-        return `${serverURL}${path}?preview=true`
+        const pageType = typeof data?.pageType === 'string' ? data.pageType : 'generic'
+        let path = ''
+        if (pageType === 'manifesto') path = '/manifesto'
+        else if (pageType === 'credits') path = '/credits'
+        else if (pageType === 'reading-article') path = `/reading/${slug}`
+        else if (slug && slug !== 'home') path = `/${slug}`
+        const params = new URLSearchParams({
+          path: path || '/',
+          previewSecret: process.env.PREVIEW_SECRET || '',
+        })
+        return `${serverURL}/next/preview?${params.toString()}`
       },
       collections: ['pages'],
       breakpoints: [

@@ -1,10 +1,13 @@
-// src/app/(frontend)/reading/[slug]/page.tsx
 import { RichText } from '@payloadcms/richtext-lexical/react'
+import { draftMode } from 'next/headers'
 import { notFound } from 'next/navigation'
 
+import { LivePreviewListener } from '../../components/live-preview-listener'
 import { payload } from '@/lib/payload'
 
 type Args = { params: Promise<{ slug: string }> }
+
+const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
 
 export async function generateMetadata({ params }: Args) {
   const { slug } = await params
@@ -23,15 +26,18 @@ export async function generateMetadata({ params }: Args) {
 
 export default async function ReadingArticle({ params }: Args) {
   const { slug } = await params
+  const { isEnabled: isDraft } = await draftMode()
+
   const res = await (await payload()).find({
     collection: 'pages',
     where: {
       and: [
         { slug: { equals: slug } },
         { pageType: { equals: 'reading-article' } },
-        { _status: { equals: 'published' } },
+        ...(isDraft ? [] : [{ _status: { equals: 'published' as const } }]),
       ],
     },
+    draft: isDraft,
     limit: 1,
   })
   const doc = res.docs[0]
@@ -40,8 +46,7 @@ export default async function ReadingArticle({ params }: Args) {
   return (
     <article className="mx-auto w-full max-w-3xl px-5 py-16 sm:px-8 md:py-28">
       <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-rubric">
-        Reading
-        {doc._isSample ? ' · [Sample]' : ''}
+        Reading{doc._isSample ? ' · [Sample]' : ''}{isDraft ? ' · Draft preview' : ''}
       </p>
       <h1 className="mt-3 font-display text-4xl italic leading-tight tracking-tight text-ink md:text-6xl">
         {doc.title}
@@ -60,6 +65,7 @@ export default async function ReadingArticle({ params }: Args) {
           <RichText data={doc.body as never} />
         </div>
       ) : null}
+      {isDraft ? <LivePreviewListener serverURL={SERVER_URL} /> : null}
     </article>
   )
 }

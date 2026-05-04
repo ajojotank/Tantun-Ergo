@@ -1,19 +1,25 @@
-// src/app/(frontend)/manifesto/page.tsx
 import { RichText } from '@payloadcms/richtext-lexical/react'
+import { draftMode } from 'next/headers'
 
+import { LivePreviewListener } from '../components/live-preview-listener'
 import { payload } from '@/lib/payload'
 
 export const metadata = { title: 'Manifesto' }
 
+const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
+
 export default async function Manifesto() {
+  const { isEnabled: isDraft } = await draftMode()
+
   const res = await (await payload()).find({
     collection: 'pages',
     where: {
       and: [
         { pageType: { equals: 'manifesto' } },
-        { _status: { equals: 'published' } },
+        ...(isDraft ? [] : [{ _status: { equals: 'published' as const } }]),
       ],
     },
+    draft: isDraft,
     limit: 1,
   })
   const doc = res.docs[0]
@@ -21,7 +27,7 @@ export default async function Manifesto() {
   return (
     <main className="mx-auto w-full max-w-3xl px-5 py-16 sm:px-8 md:py-28">
       <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-rubric">
-        Manifesto
+        Manifesto{isDraft ? ' · Draft preview' : ''}
       </p>
       <h1 className="mt-3 font-display text-5xl italic leading-tight tracking-tight text-ink md:text-7xl">
         {doc?.title ?? 'A digital Sistine Chapel.'}
@@ -35,6 +41,7 @@ export default async function Manifesto() {
           The manifesto is being written.
         </p>
       )}
+      {isDraft ? <LivePreviewListener serverURL={SERVER_URL} /> : null}
     </main>
   )
 }
