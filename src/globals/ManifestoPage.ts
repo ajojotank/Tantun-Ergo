@@ -21,6 +21,13 @@ export const ManifestoPage: GlobalConfig = {
     read: () => true,
     update: ({ req }) => Boolean(req.user),
   },
+  versions: {
+    drafts: {
+      autosave: { interval: 375 },
+      schedulePublish: true,
+    },
+    max: 50,
+  },
   fields: [
     { name: 'eyebrow', type: 'text', defaultValue: 'Manifesto' },
     {

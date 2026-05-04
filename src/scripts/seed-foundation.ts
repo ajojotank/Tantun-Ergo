@@ -24,6 +24,7 @@ async function main() {
   await payload.updateGlobal({
     slug: 'home-page',
     data: {
+      _status: 'published',
       hero: {
         eyebrow: 'In Hoc Signo · MMXXVI',
         headlineLine1: 'A digital',
@@ -78,6 +79,7 @@ async function main() {
   await payload.updateGlobal({
     slug: 'manifesto-page',
     data: {
+      _status: 'published',
       eyebrow: 'Manifesto',
       title: 'A digital Sistine Chapel.',
       body: lexicalLine(
@@ -90,6 +92,7 @@ async function main() {
   await payload.updateGlobal({
     slug: 'credits-page',
     data: {
+      _status: 'published',
       eyebrow: 'Credits',
       title: 'Sources & ecclesial review',
       body: lexicalLine(

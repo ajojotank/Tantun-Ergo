@@ -22,6 +22,13 @@ export const HomePage: GlobalConfig = {
     read: () => true,
     update: ({ req }) => Boolean(req.user),
   },
+  versions: {
+    drafts: {
+      autosave: { interval: 375 },
+      schedulePublish: true,
+    },
+    max: 50,
+  },
   fields: [
     {
       type: 'tabs',
