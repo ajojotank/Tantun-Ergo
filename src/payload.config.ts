@@ -55,6 +55,12 @@ export default buildConfig({
       description: 'Editorial control room for the Tantum Ergo formation platform.',
       titleSuffix: ' — Tantum Ergo',
     },
+    components: {
+      graphics: {
+        Logo: '/app/(payload)/components/StudioLogo',
+        Icon: '/app/(payload)/components/StudioIcon',
+      },
+    },
   },
   collections: [Users, Media, Articles],
   globals: [Settings, HomePage, ManifestoPage, CreditsPage],
