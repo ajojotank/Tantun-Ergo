@@ -261,33 +261,33 @@ Studio sidebar action: "Ingest" button on a Source doc. Triggers Payload job.
 
 ### 5.3 Raw tables (managed outside Payload)
 
-These are managed via Drizzle migrations, *not* Payload collections. Payload's `payload_kv` is intentionally avoided — it's Payload-internal and not a stable public API.
+These are managed via Drizzle migrations, *not* Payload collections. They live in a separate **`tantum`** schema (not `payload`) so Payload's dev-mode schema sync (which scans `payload.*`) doesn't see them as orphans and prompt about renames. Payload's `payload_kv` is intentionally avoided — it's Payload-internal and not a stable public API.
 
-#### `payload.rate_limits`
+#### `tantum.rate_limits`
 
 ```sql
-CREATE TABLE payload.rate_limits (
+CREATE TABLE tantum.rate_limits (
   id           bigserial PRIMARY KEY,
   bucket       text NOT NULL,            -- e.g. "catechist:ask"
   ip_hash      text NOT NULL,            -- SHA-256 of IP + a server-side salt
   created_at   timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX rate_limits_lookup_idx
-  ON payload.rate_limits (bucket, ip_hash, created_at DESC);
+  ON tantum.rate_limits (bucket, ip_hash, created_at DESC);
 
 -- Periodic cleanup (Payload job, runs every 10 minutes):
---   DELETE FROM payload.rate_limits
+--   DELETE FROM tantum.rate_limits
 --   WHERE created_at < now() - interval '2 hours';
 ```
 
 A request is allowed iff `count(*)` for `(bucket, ip_hash)` in the last `requestsPerHour` window is below the configured limit (default 20/hr from Settings global).
 
-#### `payload.source_chunks`
+#### `tantum.source_chunks`
 Holds the embedded text chunks.
 
 ```sql
 CREATE EXTENSION IF NOT EXISTS vector;
-CREATE TABLE payload.source_chunks (
+CREATE TABLE tantum.source_chunks (
   id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   source_id    integer NOT NULL REFERENCES payload.sources(id) ON DELETE CASCADE,
   chunk_index  integer NOT NULL,
@@ -297,20 +297,20 @@ CREATE TABLE payload.source_chunks (
   embedding    vector(1536) NOT NULL,    -- gemini-embedding-2 @ 768d
   created_at   timestamptz DEFAULT now()
 );
-CREATE INDEX source_chunks_embedding_idx ON payload.source_chunks
+CREATE INDEX source_chunks_embedding_idx ON tantum.source_chunks
   USING hnsw (embedding vector_cosine_ops);
-CREATE INDEX source_chunks_source_idx ON payload.source_chunks (source_id);
+CREATE INDEX source_chunks_source_idx ON tantum.source_chunks (source_id);
 ```
 
-#### `payload.media_chunks` (for multimodal artwork search)
+#### `tantum.media_chunks` (for multimodal artwork search)
 ```sql
-CREATE TABLE payload.media_chunks (
+CREATE TABLE tantum.media_chunks (
   id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   media_id     integer NOT NULL REFERENCES payload.media(id) ON DELETE CASCADE,
   embedding    vector(1536) NOT NULL,
   created_at   timestamptz DEFAULT now()
 );
-CREATE INDEX media_chunks_embedding_idx ON payload.media_chunks
+CREATE INDEX media_chunks_embedding_idx ON tantum.media_chunks
   USING hnsw (embedding vector_cosine_ops);
 ```
 
@@ -341,7 +341,7 @@ CREATE INDEX media_chunks_embedding_idx ON payload.media_chunks
   → text extract (pdf-parse for PDF, mammoth for DOCX)
   → chunk (semantic chunker, ~500-800 tokens per chunk, with locator extraction)
   → embed batch (gemini-embedding-2, outputDimensionality=1536, multimodal)
-  → insert into payload.source_chunks
+  → insert into tantum.source_chunks
   → set Source.ingestStatus=ingested, chunkCount, lastIngestedAt
 
 [End user POSTs to /api/catechist/ask]

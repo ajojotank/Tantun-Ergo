@@ -133,30 +133,29 @@ The `Pages` collection ships with autosave (375 ms debounce), draft/publish work
 
 ## Roadmap
 
-### v0.2 — Miracle Atlas (Q3 2026)
+We ship v1.0 (the polished shell, ready for the content team) inside one focused week, then hand off content authoring. Spec: [`docs/superpowers/specs/2026-05-04-tantum-ergo-v1-design.md`](docs/superpowers/specs/2026-05-04-tantum-ergo-v1-design.md).
 
-- Mapbox GL JS globe with WebGL custom layers.
-- A `Miracles` collection (location, date, type, source documents, ecclesial status).
-- Scroll-linked timeline scrubber: drag through the centuries; the globe re-renders the witnesses living at each year.
-- Image-sequence transitions for "approach" cinematics on each pinned miracle.
+### Plan 1 · Foundation — **shipped (`feat/foundation`)**
 
-### v0.3 — Doctrine LMS (Q4 2026)
+Public marketing surface, mobile drawer, scroll-scrubbed manifesto sequence, `/reading` index + detail, `/manifesto`, `/credits`, three pillar coming-soon placeholders. All copy and imagery flow through the Payload studio (Settings + ManifestoSequence globals + Pages collection). Idempotent foundation seed populates a walkable site with `[Sample]`-marked filler. Plan: [`docs/superpowers/plans/2026-05-04-tantum-ergo-foundation.md`](docs/superpowers/plans/2026-05-04-tantum-ergo-foundation.md).
 
-- `Tracks → Modules → Units` content model.
-- Video (Mux), audio (homily-style narration), and reading lanes with synchronized progress.
-- Mastery-check rubric per unit; spaced-repetition prompts.
-- Offline-first reading via service worker for parish use without bandwidth.
+### Plan 2 · Atlas pillar — next
 
-### v0.4 — AI Catechist (Q1 2027)
+Mapbox GL JS globe with explore + pilgrimage modes, `Miracles` collection, scroll-scrubbed pilgrimage chapters, mobile catalogue fallback, Atlas filler seed.
 
-- Retrieval over the Catechism, Vatican II texts, encyclicals (Latin + ZA-relevant translations).
-- Citation-required answers — no claim ungrounded.
-- Conversation memory bound to a Steward profile; exportable to spiritual director.
+### Plan 3 · Doctrine LMS pillar
 
-### v1.0 — Public launch (Easter 2027)
+`DoctrineTracks` / `DoctrineModules` / `DoctrineUnits` collections, breviary-style unit player with Read / Watch / Listen lanes, gentle mastery checks, `localStorage` progress, Doctrine filler seed.
 
-- WCAG 2.2 AA throughout, including reduced-motion variants of every scroll-scrubbed sequence.
-- ZA-first hosting with edge caching across Africa.
+### Plan 4 · Catechist pillar
+
+`Sources` collection + ingestion job (PDF/DOCX → chunked + embedded with `gemini-embedding-2`, multimodal), `/api/catechist/ask` with structured-output citation guarantee (no path to render an answer without citations), epistolary spiritual-direction UI, per-IP rate limiting via the `tantum.rate_limits` table.
+
+### Plan 5 · Storage + polish
+
+`@payloadcms/storage-s3` pointed at Supabase Storage, lint / typecheck / build clean, accessibility self-test, perf budget verification (LCP < 2.5s on mid-range mobile).
+
+After v1.0, the content team takes over: they author miracles in the Atlas, modules in Doctrine, and upload Magisterial sources for the Catechist to ingest.
 
 ---
 
