@@ -88,3 +88,24 @@ body::before {
     scroll-behavior: auto !important;
   }
 }
+
+/* Mapbox hover popup — match the sacred vellum palette. */
+.atlas-hover-popup .mapboxgl-popup-content {
+  background: var(--color-vellum);
+  color: var(--color-ink);
+  border: 1px solid rgba(26, 20, 16, 0.1);
+  border-radius: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.5) inset,
+    0 12px 28px -12px rgba(26, 20, 16, 0.25);
+}
+
+.atlas-hover-popup .mapboxgl-popup-tip {
+  border-top-color: var(--color-vellum) !important;
+}
+
+.atlas-hover-popup.mapboxgl-popup-anchor-top .mapboxgl-popup-tip {
+  border-bottom-color: var(--color-vellum) !important;
+  border-top-color: transparent !important;
+}
