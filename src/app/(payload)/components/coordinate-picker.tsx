@@ -36,7 +36,17 @@ export default function CoordinatePicker(props: Props) {
 
   // Read sibling locationName for the geocode button (Task 19 wires this).
   const locationName = useFormFields<string>(([fields]) => {
-    const v = fields?.locationName?.value
+    const field = fields?.locationName
+    if (process.env.NODE_ENV === 'development' && field === undefined) {
+      // Schema-coupling guard: if locationName ever moves (renamed, nested
+      // under a group, etc.) this picker would silently degrade to "no input
+      // → Geocode disabled." Warn loudly in dev so the rename gets caught.
+      console.warn(
+        '[CoordinatePicker] sibling field "locationName" not found in form state. ' +
+          'Did you rename or move it in the Miracles schema?',
+      )
+    }
+    const v = field?.value
     return typeof v === 'string' ? v : ''
   })
 
