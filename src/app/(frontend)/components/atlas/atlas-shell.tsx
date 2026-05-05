@@ -2,6 +2,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { useMemo, useState } from 'react'
 
 import { cn } from '@/lib/cn'
@@ -234,12 +235,12 @@ function MobileExploreFallback({ count }: { count: number }) {
         <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.22em] text-ink-soft">
           {count} miracles in the corpus
         </p>
-        <a
+        <Link
           href="/atlas/list"
           className="mt-6 inline-block rounded-full bg-ink px-5 py-2 font-mono text-[11px] uppercase tracking-[0.22em] text-vellum hover:bg-rubric-deep"
         >
           View catalogue →
-        </a>
+        </Link>
       </div>
     </div>
   )
