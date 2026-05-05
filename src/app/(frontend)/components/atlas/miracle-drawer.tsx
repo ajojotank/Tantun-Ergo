@@ -3,7 +3,7 @@
 
 import Image from 'next/image'
 import { AnimatePresence, motion } from 'framer-motion'
-import { useEffect } from 'react'
+import { type RefObject, useEffect, useRef } from 'react'
 
 import { cn } from '@/lib/cn'
 import {
@@ -23,13 +23,24 @@ export function MiracleDrawer({
   miracle: MiracleSummary | null
   onClose: () => void
 }) {
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null)
+
   useEffect(() => {
     if (!miracle) return
+    const previouslyFocused = document.activeElement as HTMLElement | null
+    // Defer focus to the next tick so the drawer is mounted in the DOM.
+    const focusTimer = window.setTimeout(() => {
+      closeButtonRef.current?.focus()
+    }, 0)
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') onClose()
     }
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    return () => {
+      window.clearTimeout(focusTimer)
+      window.removeEventListener('keydown', onKey)
+      previouslyFocused?.focus?.()
+    }
   }, [miracle, onClose])
 
   return (
@@ -63,7 +74,7 @@ export function MiracleDrawer({
             exit={{ y: '100%', opacity: 0 }}
             transition={SPRING}
           >
-            <DrawerBody miracle={miracle} onClose={onClose} />
+            <DrawerBody miracle={miracle} onClose={onClose} closeButtonRef={closeButtonRef} />
           </motion.aside>
         </>
       ) : null}
@@ -74,9 +85,11 @@ export function MiracleDrawer({
 function DrawerBody({
   miracle,
   onClose,
+  closeButtonRef,
 }: {
   miracle: MiracleSummary
   onClose: () => void
+  closeButtonRef: RefObject<HTMLButtonElement | null>
 }) {
   return (
     <div className="flex flex-col gap-6 px-6 py-6 sm:px-8">
@@ -92,6 +105,7 @@ function DrawerBody({
           </span>
         </div>
         <button
+          ref={closeButtonRef}
           type="button"
           onClick={onClose}
           aria-label="Close"
