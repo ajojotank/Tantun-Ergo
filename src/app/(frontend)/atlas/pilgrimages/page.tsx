@@ -17,6 +17,11 @@ export const metadata: Metadata = {
     'Curated routes through the Miracle Atlas. Choose a pilgrimage to walk.',
 }
 
+// Force dynamic rendering so newly published pilgrimages appear immediately,
+// without waiting for a rebuild. Stewards add curated routes via the studio
+// and expect them to be live the moment they hit Publish.
+export const dynamic = 'force-dynamic'
+
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
 
 export default async function PilgrimagesGallery() {
