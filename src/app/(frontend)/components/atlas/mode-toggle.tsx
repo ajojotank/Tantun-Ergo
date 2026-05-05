@@ -15,9 +15,10 @@ const TABS: Array<{ mode: AtlasMode; label: string; href: string }> = [
 
 export function ModeToggle({ className }: { className?: string }) {
   const pathname = usePathname()
-  const activeMode: AtlasMode = pathname.startsWith('/atlas/pilgrimages')
-    ? 'pilgrimages'
-    : 'explore'
+  const activeMode: AtlasMode =
+    pathname === '/atlas/pilgrimages' || pathname.startsWith('/atlas/pilgrimages/')
+      ? 'pilgrimages'
+      : 'explore'
 
   return (
     <nav
