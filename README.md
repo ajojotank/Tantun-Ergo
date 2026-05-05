@@ -139,9 +139,9 @@ We ship v1.0 (the polished shell, ready for the content team) inside one focused
 
 Public marketing surface, mobile drawer, scroll-scrubbed manifesto sequence, `/reading` index + detail, `/manifesto`, `/credits`, three pillar coming-soon placeholders. All copy and imagery flow through the Payload studio (Settings + ManifestoSequence globals + Pages collection). Idempotent foundation seed populates a walkable site with `[Sample]`-marked filler. Plan: [`docs/superpowers/plans/2026-05-04-tantum-ergo-foundation.md`](docs/superpowers/plans/2026-05-04-tantum-ergo-foundation.md).
 
-### Plan 2 · Atlas pillar — next
+### Plan 2 · Atlas pillar ✅
 
-Mapbox GL JS globe with explore + pilgrimage modes, `Miracles` collection, scroll-scrubbed pilgrimage chapters, mobile catalogue fallback, Atlas filler seed.
+Mapbox GL globe with type-coloured pins, side drawer for miracle detail, timeline scrub, type + status filters. Pilgrimage scroll-storytelling mode with sticky map and per-chapter `flyTo`. Mobile collapses to pilgrimage + `/atlas/list` keyboard-accessible catalogue. `Miracles` collection with drafts + autosave + scheduled publish + live preview. Seed: 9 sample miracles, 4 in pilgrimage. Plan: [`docs/superpowers/plans/2026-05-05-tantum-ergo-atlas.md`](docs/superpowers/plans/2026-05-05-tantum-ergo-atlas.md).
 
 ### Plan 3 · Doctrine LMS pillar
 
