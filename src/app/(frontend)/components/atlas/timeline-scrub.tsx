@@ -1,7 +1,7 @@
 // src/app/(frontend)/components/atlas/timeline-scrub.tsx
 'use client'
 
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 
 import { cn } from '@/lib/cn'
 
@@ -18,7 +18,6 @@ export function TimelineScrub({
   onChange: (next: number) => void
   className?: string
 }) {
-  const inputRef = useRef<HTMLInputElement | null>(null)
   const [focused, setFocused] = useState(false)
   const safeValue = Math.min(Math.max(value, min), max)
 
@@ -49,7 +48,6 @@ export function TimelineScrub({
         </span>
       </div>
       <input
-        ref={inputRef}
         type="range"
         min={min}
         max={max}
