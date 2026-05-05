@@ -293,7 +293,7 @@ export interface Article {
   _status?: ('draft' | 'published') | null;
 }
 /**
- * The Atlas corpus. Each miracle gets a pin on /atlas; the inPilgrimage flag promotes it to the curated scrolltelling chapters.
+ * The Atlas corpus. Each miracle gets a pin on /atlas. To curate ordered chapter sequences, add miracles to a Pilgrimage (see the Pilgrimages collection).
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "miracles".
@@ -339,7 +339,7 @@ export interface Miracle {
    */
   locationName: string;
   /**
-   * Pin position. Payload stores [longitude, latitude] — the same order Mapbox expects.
+   * Click on the map to drop a pin, drag to refine, or use the Geocode button below to fill from the location name.
    *
    * @minItems 2
    * @maxItems 2
