@@ -44,14 +44,10 @@ export default async function AtlasPage({
     draft: isDraft,
     limit: 500,
     sort: 'yearOccurred',
-    depth: 2, // resolve artwork upload relations
+    depth: 2,
   })
 
   if (result.docs.length === 0) {
-    // No miracles seeded yet — render an honest "opens soon" page. Mount the
-    // live-preview listener for editors so the iframe refreshes the moment
-    // they save the first miracle, swapping this empty state for the live
-    // shell on the next paint.
     return (
       <>
         <AtlasEmpty />
@@ -68,7 +64,6 @@ export default async function AtlasPage({
         miracles={miracles}
         styleUrl={styleUrl}
         initialFocusSlug={focus}
-        initialMode="explore"
       />
       {isDraft ? <LivePreviewListener serverURL={SERVER_URL} /> : null}
     </main>
@@ -92,8 +87,6 @@ function AtlasEmpty() {
   )
 }
 
-// Map a raw Payload `miracles` doc to the serialisable MiracleSummary the
-// client components consume. Keeps types tight at the boundary.
 function toSummary(d: unknown): MiracleSummary {
   const r = d as Record<string, unknown>
   const coords = Array.isArray(r.coordinates) ? (r.coordinates as number[]) : [0, 0]
@@ -111,7 +104,6 @@ function toSummary(d: unknown): MiracleSummary {
 
   const artwork: MiracleArtwork[] = artworkRaw
     .map((a): MiracleArtwork | null => {
-      // depth:2 resolves upload to full doc; depth:0/1 returns id string.
       if (typeof a !== 'object' || a === null) return null
       const o = a as Record<string, unknown>
       const url = typeof o.url === 'string' ? o.url : null
@@ -144,9 +136,6 @@ function toSummary(d: unknown): MiracleSummary {
     narrative: r.narrative ?? null,
     sources,
     artwork,
-    inPilgrimage: Boolean(r.inPilgrimage),
-    pilgrimageOrder:
-      typeof r.pilgrimageOrder === 'number' ? r.pilgrimageOrder : null,
     isSample: Boolean(r._isSample),
   }
 }
