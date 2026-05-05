@@ -18,6 +18,7 @@
     "generate:importmap": "payload generate:importmap",
     "seed:foundation": "tsx src/scripts/seed-foundation.ts",
     "seed:atlas": "tsx src/scripts/seed-atlas.ts",
+    "seed:pilgrimages": "tsx src/scripts/seed-pilgrimages.ts",
     "migrate:media": "tsx src/scripts/migrate-media-to-supabase.ts"
   },
   "dependencies": {
