@@ -2,9 +2,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 
-import { type PilgrimageSummary } from './types'
-
-const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X']
+import { romanize, type PilgrimageSummary } from './types'
 
 export function PilgrimagePlate({
   pilgrimage,
@@ -13,7 +11,7 @@ export function PilgrimagePlate({
   pilgrimage: PilgrimageSummary
   index: number
 }) {
-  const numeral = ROMAN[index + 1] ?? String(index + 1)
+  const numeral = romanize(index + 1)
   return (
     <Link
       href={`/atlas/pilgrimages/${pilgrimage.slug}`}

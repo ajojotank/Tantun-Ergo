@@ -21,6 +21,7 @@ import {
   STATUS_LABEL,
   TYPE_LABEL,
   formatYear,
+  romanize,
 } from './types'
 
 const TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
@@ -383,9 +384,4 @@ function useChapterActivation(
   }, [count, refsRef])
 
   return activeIdx
-}
-
-const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII']
-function romanize(n: number) {
-  return ROMAN[n] ?? String(n)
 }

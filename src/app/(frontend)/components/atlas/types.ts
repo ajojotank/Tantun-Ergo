@@ -98,3 +98,11 @@ export function formatYear(yearOccurred: number, dateApproximate: boolean): stri
   const abs = Math.abs(yearOccurred)
   return `${dateApproximate ? 'c. ' : ''}${abs}${sign}`
 }
+
+const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII']
+
+// Roman numeral for chapter labels. Falls back to arabic for n > 12 — content
+// team won't curate longer pilgrimages in v1; extend ROMAN if they do.
+export function romanize(n: number): string {
+  return ROMAN[n] ?? String(n)
+}
