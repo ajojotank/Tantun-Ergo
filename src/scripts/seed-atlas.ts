@@ -32,8 +32,6 @@ type MiracleSeed = {
   summary: string
   narrativeText: string
   sources?: Array<{ label: string; url?: string; attribution?: string }>
-  inPilgrimage?: boolean
-  pilgrimageOrder?: number
 }
 
 const SEEDS: MiracleSeed[] = [
@@ -57,8 +55,6 @@ const SEEDS: MiracleSeed[] = [
         attribution: 'Diocese of Sample-See',
       },
     ],
-    inPilgrimage: true,
-    pilgrimageOrder: 1,
   },
   {
     slug: 'bleeding-host-of-placeholder-bolsena',
@@ -99,8 +95,6 @@ const SEEDS: MiracleSeed[] = [
         attribution: 'Diocesan archive (filler)',
       },
     ],
-    inPilgrimage: true,
-    pilgrimageOrder: 2,
   },
   {
     slug: 'our-lady-of-lorem',
@@ -140,8 +134,6 @@ const SEEDS: MiracleSeed[] = [
         attribution: 'Anywhere diocesan curia',
       },
     ],
-    inPilgrimage: true,
-    pilgrimageOrder: 3,
   },
   {
     slug: 'restoration-at-sample-spring',
@@ -183,8 +175,6 @@ const SEEDS: MiracleSeed[] = [
         attribution: 'Order of Friars Sample',
       },
     ],
-    inPilgrimage: true,
-    pilgrimageOrder: 4,
   },
   {
     slug: 'incorrupt-body-of-saint-lorem',
@@ -284,8 +274,6 @@ async function ensureMiracle(
     summary: seed.summary,
     narrative: lexicalLine(seed.narrativeText),
     sources: seed.sources ?? [],
-    inPilgrimage: Boolean(seed.inPilgrimage),
-    pilgrimageOrder: seed.pilgrimageOrder,
     _isSample: true,
     _status: 'published' as const,
   }
