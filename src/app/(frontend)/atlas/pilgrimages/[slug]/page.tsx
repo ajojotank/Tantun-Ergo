@@ -18,9 +18,26 @@ export async function generateMetadata({
   params: Params
 }): Promise<Metadata> {
   const { slug } = await params
+  // Cheap fetch — depth 0, just title + subtitle. Server-rendered, cached
+  // per request by Payload's connection pool.
+  const result = await (await payload()).find({
+    collection: 'pilgrimages',
+    where: { slug: { equals: slug }, _status: { equals: 'published' } },
+    limit: 1,
+    depth: 0,
+  })
+  const doc = result.docs[0]
+  if (!doc) {
+    return {
+      title: 'Pilgrimage',
+      description: 'A curated scrolltelling walk through the Miracle Atlas.',
+    }
+  }
+  const title = typeof doc.title === 'string' ? doc.title : 'Pilgrimage'
+  const subtitle = typeof doc.subtitle === 'string' ? doc.subtitle : null
   return {
-    title: `Pilgrimage · ${slug.replace(/-/g, ' ')}`,
-    description: 'A curated scrolltelling walk through the Miracle Atlas.',
+    title: `Pilgrimage · ${title}`,
+    description: subtitle ?? 'A curated scrolltelling walk through the Miracle Atlas.',
   }
 }
 
