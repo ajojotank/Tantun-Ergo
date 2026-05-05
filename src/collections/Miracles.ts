@@ -116,7 +116,10 @@ export const Miracles: CollectionConfig = {
               required: true,
               admin: {
                 description:
-                  'Pin position. Payload stores [longitude, latitude] — the same order Mapbox expects.',
+                  'Click on the map to drop a pin, drag to refine, or use the Geocode button below to fill from the location name.',
+                components: {
+                  Field: '/app/(payload)/components/coordinate-picker#default',
+                },
               },
             },
             {
