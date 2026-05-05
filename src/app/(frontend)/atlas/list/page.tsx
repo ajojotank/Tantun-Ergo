@@ -17,6 +17,7 @@ export const metadata: Metadata = {
   title: 'Atlas · Catalogue',
   description:
     'The full corpus of miracles, listed alphabetically. Keyboard-accessible alternative to the 3D globe.',
+  robots: { index: false, follow: true },
 }
 
 type SearchParams = Promise<{ type?: string; status?: string }>
