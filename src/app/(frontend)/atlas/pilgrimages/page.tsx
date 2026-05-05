@@ -6,8 +6,9 @@ import { LivePreviewListener } from '../../components/live-preview-listener'
 import { ModeToggle } from '../../components/atlas/mode-toggle'
 import { PilgrimagePlate } from '../../components/atlas/pilgrimage-plate'
 import {
-  type PilgrimageSummary,
-} from '../../components/atlas/types'
+  pilgrimageRouteCount,
+  toPilgrimageSummary,
+} from '../../components/atlas/serialise'
 import { payload } from '@/lib/payload'
 
 export const metadata: Metadata = {
@@ -30,7 +31,13 @@ export default async function PilgrimagesGallery() {
     depth: 1, // resolve coverImage upload
   })
 
-  const pilgrimages: PilgrimageSummary[] = result.docs.map((d) => toSummary(d))
+  // Gallery doesn't render route stops inline — serialise without hydrating
+  // each miracle and pair with the raw stop count for the plate's
+  // "{N} chapters" label.
+  const pilgrimages = result.docs.map((d) => ({
+    pilgrimage: toPilgrimageSummary(d, { includeRoute: false }),
+    stopCount: pilgrimageRouteCount(d),
+  }))
 
   return (
     <main className="min-h-[80dvh] pb-24">
@@ -58,8 +65,13 @@ export default async function PilgrimagesGallery() {
         </div>
       ) : (
         <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-6 px-5 sm:px-8 md:grid-cols-2 lg:grid-cols-3">
-          {pilgrimages.map((p, i) => (
-            <PilgrimagePlate key={p.id} pilgrimage={p} index={i} />
+          {pilgrimages.map(({ pilgrimage, stopCount }, i) => (
+            <PilgrimagePlate
+              key={pilgrimage.id}
+              pilgrimage={pilgrimage}
+              stopCount={stopCount}
+              index={i}
+            />
           ))}
         </div>
       )}
@@ -67,30 +79,4 @@ export default async function PilgrimagesGallery() {
       {isDraft ? <LivePreviewListener serverURL={SERVER_URL} /> : null}
     </main>
   )
-}
-
-function toSummary(d: unknown): PilgrimageSummary {
-  const r = d as Record<string, unknown>
-  const cover = (r.coverImage && typeof r.coverImage === 'object'
-    ? (r.coverImage as Record<string, unknown>)
-    : null)
-  return {
-    id: String(r.id),
-    slug: String(r.slug ?? ''),
-    title: String(r.title ?? ''),
-    subtitle: typeof r.subtitle === 'string' ? r.subtitle : null,
-    intro: typeof r.intro === 'string' ? r.intro : null,
-    coverImage: cover && typeof cover.url === 'string'
-      ? {
-          url: cover.url as string,
-          alt: typeof cover.alt === 'string' ? cover.alt : '',
-        }
-      : null,
-    // Gallery doesn't render the route inline — we stub with empty array;
-    // the walker page (Task 17) re-fetches with deeper depth.
-    route: Array.isArray(r.route)
-      ? r.route.map(() => ({ miracle: {} as never }))
-      : [],
-    isSample: Boolean(r._isSample),
-  }
 }

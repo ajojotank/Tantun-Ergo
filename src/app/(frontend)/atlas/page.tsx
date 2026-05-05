@@ -2,13 +2,8 @@ import type { Metadata } from 'next'
 import { draftMode } from 'next/headers'
 
 import { AtlasShell } from '../components/atlas/atlas-shell'
-import {
-  type EcclesialStatus,
-  type MiracleArtwork,
-  type MiracleSource,
-  type MiracleSummary,
-  type MiracleType,
-} from '../components/atlas/types'
+import { toMiracleSummary } from '../components/atlas/serialise'
+import { type MiracleSummary } from '../components/atlas/types'
 import { LivePreviewListener } from '../components/live-preview-listener'
 import { payload } from '@/lib/payload'
 
@@ -56,7 +51,7 @@ export default async function AtlasPage({
     )
   }
 
-  const miracles: MiracleSummary[] = result.docs.map((d) => toSummary(d))
+  const miracles: MiracleSummary[] = result.docs.map((d) => toMiracleSummary(d))
 
   return (
     <main className="min-h-[80dvh] pb-24">
@@ -85,57 +80,4 @@ function AtlasEmpty() {
       </p>
     </main>
   )
-}
-
-function toSummary(d: unknown): MiracleSummary {
-  const r = d as Record<string, unknown>
-  const coords = Array.isArray(r.coordinates) ? (r.coordinates as number[]) : [0, 0]
-  const sourcesRaw = Array.isArray(r.sources) ? r.sources : []
-  const artworkRaw = Array.isArray(r.artwork) ? r.artwork : []
-
-  const sources: MiracleSource[] = sourcesRaw.map((s) => {
-    const o = s as Record<string, unknown>
-    return {
-      label: typeof o.label === 'string' ? o.label : '',
-      url: typeof o.url === 'string' ? o.url : null,
-      attribution: typeof o.attribution === 'string' ? o.attribution : null,
-    }
-  })
-
-  const artwork: MiracleArtwork[] = artworkRaw
-    .map((a): MiracleArtwork | null => {
-      if (typeof a !== 'object' || a === null) return null
-      const o = a as Record<string, unknown>
-      const url = typeof o.url === 'string' ? o.url : null
-      if (!url) return null
-      return {
-        id: String(o.id ?? url),
-        url,
-        alt: typeof o.alt === 'string' ? o.alt : '',
-        caption: typeof o.caption === 'string' ? o.caption : null,
-        attribution: typeof o.attribution === 'string' ? o.attribution : null,
-      }
-    })
-    .filter((a): a is MiracleArtwork => a !== null)
-
-  return {
-    id: String(r.id),
-    slug: String(r.slug ?? ''),
-    title: String(r.title ?? ''),
-    type: r.type as MiracleType,
-    ecclesialStatus: r.ecclesialStatus as EcclesialStatus,
-    locationName: String(r.locationName ?? ''),
-    coordinates: [Number(coords[0] ?? 0), Number(coords[1] ?? 0)],
-    yearOccurred: Number(r.yearOccurred ?? 0),
-    dateApproximate: Boolean(r.dateApproximate),
-    approvalDate:
-      typeof r.approvalDate === 'string' ? r.approvalDate : null,
-    approvingAuthority:
-      typeof r.approvingAuthority === 'string' ? r.approvingAuthority : null,
-    summary: String(r.summary ?? ''),
-    narrative: r.narrative ?? null,
-    sources,
-    artwork,
-    isSample: Boolean(r._isSample),
-  }
 }

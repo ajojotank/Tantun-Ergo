@@ -6,9 +6,17 @@ import { romanize, type PilgrimageSummary } from './types'
 
 export function PilgrimagePlate({
   pilgrimage,
+  stopCount,
   index,
 }: {
   pilgrimage: PilgrimageSummary
+  /**
+   * Number of chapters in the pilgrimage. Passed in by the gallery rather
+   * than read from `pilgrimage.route.length` because the gallery page
+   * intentionally serialises route as `[]` (it doesn't hydrate stops at
+   * `depth: 1`). The walker page passes the real route's length.
+   */
+  stopCount: number
   index: number
 }) {
   const numeral = romanize(index + 1)
@@ -49,7 +57,7 @@ export function PilgrimagePlate({
           </p>
         ) : null}
         <p className="pt-2 font-mono text-[10px] uppercase tracking-[0.22em] text-vellum/70">
-          {pilgrimage.route.length} chapters · Begin →
+          {stopCount} chapters · Begin →
         </p>
       </div>
     </Link>
