@@ -197,7 +197,10 @@ function DrawerBody({
 }
 
 // Permissive Lexical walker — paragraphs and inline text only. Anything else
-// silently degrades to plain text. Matches Plan 1's reading article render.
+// silently degrades to plain text. Mirrors manifesto-sequence.tsx's
+// plain-extract pattern; intentionally drops headings, lists, and links for
+// the v1 drawer. Switch to @payloadcms/richtext-lexical/react's <RichText/>
+// when the editorial team needs richer formatting in narratives.
 function NarrativeBlock({ node }: { node: unknown }) {
   const root = (node as { root?: { children?: unknown[] } } | null)?.root
   const children = Array.isArray(root?.children) ? root!.children : []
