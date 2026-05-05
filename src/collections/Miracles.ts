@@ -155,5 +155,44 @@ export const Miracles: CollectionConfig = {
         },
       ],
     },
+    {
+      name: 'slug',
+      type: 'text',
+      required: true,
+      unique: true,
+      index: true,
+      admin: {
+        position: 'sidebar',
+        description: 'URL fragment for live preview (/atlas?focus={slug}).',
+      },
+    },
+    {
+      name: 'inPilgrimage',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        position: 'sidebar',
+        description:
+          'Promotes this miracle into the curated pilgrimage scrolltelling on /atlas.',
+      },
+    },
+    {
+      name: 'pilgrimageOrder',
+      type: 'number',
+      admin: {
+        position: 'sidebar',
+        description: 'Chapter order in the pilgrimage. Only used when inPilgrimage is true.',
+        condition: (data) => Boolean(data?.inPilgrimage),
+      },
+    },
+    {
+      name: '_isSample',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        position: 'sidebar',
+        description: 'Marks this miracle as filler. Frontend renders a [Sample] badge.',
+      },
+    },
   ],
 }
