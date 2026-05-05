@@ -12,7 +12,7 @@ import Map, {
   type MapMouseEvent,
 } from 'react-map-gl/mapbox'
 import { FieldLabel, useField, useFormFields } from '@payloadcms/ui'
-import { useRef, useState } from 'react'
+import { useRef, useState, useTransition } from 'react'
 
 import { applyDuskPreset, STANDARD_STYLE } from '@/app/(frontend)/components/atlas/mapbox-style'
 
@@ -55,6 +55,46 @@ export default function CoordinatePicker(props: Props) {
 
   function handleClear() {
     setValue(null as unknown as Coords)
+  }
+
+  const [geocodeError, setGeocodeError] = useState<string | null>(null)
+  const [isPending, startTransition] = useTransition()
+
+  async function handleGeocode() {
+    setGeocodeError(null)
+    if (!TOKEN) {
+      setGeocodeError('Mapbox token missing.')
+      return
+    }
+    if (!locationName.trim()) {
+      setGeocodeError('Type a location name above first.')
+      return
+    }
+    startTransition(async () => {
+      try {
+        const url = new URL(
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(locationName.trim())}.json`,
+        )
+        url.searchParams.set('access_token', TOKEN)
+        url.searchParams.set('limit', '1')
+        const res = await fetch(url.toString())
+        if (!res.ok) throw new Error(`Geocoding failed (${res.status})`)
+        const json = (await res.json()) as { features?: Array<{ center?: [number, number] }> }
+        const center = json.features?.[0]?.center
+        if (!Array.isArray(center) || center.length !== 2) {
+          setGeocodeError(`No match for "${locationName}".`)
+          return
+        }
+        setValue([center[0], center[1]])
+        mapRef.current?.flyTo({
+          center,
+          zoom: 5,
+          duration: 1200,
+        })
+      } catch (err) {
+        setGeocodeError(err instanceof Error ? err.message : 'Geocoding failed.')
+      }
+    })
   }
 
   const labelText =
@@ -138,12 +178,26 @@ export default function CoordinatePicker(props: Props) {
       </div>
 
       <div className="coordinate-picker__geocode">
-        {/* Geocode button lands in Task 19 */}
-        <span className="coordinate-picker__readout--empty">
-          {locationName
-            ? `Location name: "${locationName}"`
-            : 'Type a location name above, then a Geocode button will appear here.'}
-        </span>
+        <button
+          type="button"
+          onClick={handleGeocode}
+          disabled={!locationName.trim() || isPending}
+          className="coordinate-picker__geocode-button"
+        >
+          {isPending ? 'Geocoding…' : 'Geocode from location name'}
+        </button>
+        {locationName.trim() ? (
+          <span className="coordinate-picker__readout--hint">
+            Looks up &ldquo;{locationName.trim()}&rdquo; via Mapbox Geocoding.
+          </span>
+        ) : (
+          <span className="coordinate-picker__readout--empty">
+            Type a location name above to enable geocoding.
+          </span>
+        )}
+        {geocodeError ? (
+          <p className="coordinate-picker__error">{geocodeError}</p>
+        ) : null}
       </div>
 
       {errorMessage ? (
