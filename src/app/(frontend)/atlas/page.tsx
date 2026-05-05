@@ -47,9 +47,17 @@ export default async function AtlasPage({
     depth: 2, // resolve artwork upload relations
   })
 
-  if (result.docs.length === 0 && !isDraft) {
-    // No miracles seeded yet — render an honest "opens soon" instead of crashing.
-    return <AtlasEmpty />
+  if (result.docs.length === 0) {
+    // No miracles seeded yet — render an honest "opens soon" page. Mount the
+    // live-preview listener for editors so the iframe refreshes the moment
+    // they save the first miracle, swapping this empty state for the live
+    // shell on the next paint.
+    return (
+      <>
+        <AtlasEmpty />
+        {isDraft ? <LivePreviewListener serverURL={SERVER_URL} /> : null}
+      </>
+    )
   }
 
   const miracles: MiracleSummary[] = result.docs.map((d) => toSummary(d))
