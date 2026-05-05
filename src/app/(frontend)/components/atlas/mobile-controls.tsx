@@ -2,7 +2,7 @@
 'use client'
 
 import { AnimatePresence, motion } from 'framer-motion'
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 
 import { cn } from '@/lib/cn'
 
@@ -24,14 +24,24 @@ export function MobileControls({
   className?: string
 }) {
   const [open, setOpen] = useState<SheetKey>(null)
+  const doneButtonRef = useRef<HTMLButtonElement | null>(null)
 
   useEffect(() => {
     if (!open) return
+    const previouslyFocused = document.activeElement as HTMLElement | null
+    // Defer focus to the next tick so the sheet is mounted in the DOM.
+    const focusTimer = window.setTimeout(() => {
+      doneButtonRef.current?.focus()
+    }, 0)
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') setOpen(null)
     }
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    return () => {
+      window.clearTimeout(focusTimer)
+      window.removeEventListener('keydown', onKey)
+      previouslyFocused?.focus?.()
+    }
   }, [open])
 
   return (
@@ -99,6 +109,7 @@ export function MobileControls({
                   {open === 'filter' ? 'Filters' : 'Timeline'}
                 </h2>
                 <button
+                  ref={doneButtonRef}
                   type="button"
                   onClick={() => setOpen(null)}
                   className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft transition-colors hover:text-ink"
