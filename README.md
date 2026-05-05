@@ -139,9 +139,9 @@ We ship v1.0 (the polished shell, ready for the content team) inside one focused
 
 Public marketing surface, mobile drawer, scroll-scrubbed manifesto sequence, `/reading` index + detail, `/manifesto`, `/credits`, three pillar coming-soon placeholders. All copy and imagery flow through the Payload studio (Settings + ManifestoSequence globals + Pages collection). Idempotent foundation seed populates a walkable site with `[Sample]`-marked filler. Plan: [`docs/superpowers/plans/2026-05-04-tantum-ergo-foundation.md`](docs/superpowers/plans/2026-05-04-tantum-ergo-foundation.md).
 
-### Plan 2 · Atlas pillar ✅
+### Plan 2 · Atlas pillar ✅ (v2)
 
-Mapbox GL globe with type-coloured pins, side drawer for miracle detail, timeline scrub, type + status filters. Pilgrimage scroll-storytelling mode with sticky map and per-chapter `flyTo`. Mobile collapses to pilgrimage + `/atlas/list` keyboard-accessible catalogue. `Miracles` collection with drafts + autosave + scheduled publish + live preview. Seed: 9 sample miracles, 4 in pilgrimage. Plan: [`docs/superpowers/plans/2026-05-05-tantum-ergo-atlas.md`](docs/superpowers/plans/2026-05-05-tantum-ergo-atlas.md).
+3D Mapbox **Standard** globe with dusk-lit cathedrals + landmark buildings. Multi-pilgrimage architecture: stewards curate ordered routes through the corpus via the new `Pilgrimages` collection (drafts + autosave + scheduled publish + live preview). End-users browse `/atlas/pilgrimages` and walk individual routes at `/atlas/pilgrimages/[slug]` — each chapter pitches the camera and flies to zoom 15 so 3D buildings render at arrival. Mobile-first: full-bleed globe with floating filter + year pills (no desktop-only fallback). Steward UX: custom **coordinate-picker** field with embedded Mapbox map (click-to-place, drag-to-refine) and a Mapbox Geocoding API "Geocode from location name" button. Plans: [Plan 2 (initial)](docs/superpowers/plans/2026-05-05-tantum-ergo-atlas.md) · [Plan 2.5 (v2 redesign)](docs/superpowers/plans/2026-05-05-tantum-ergo-atlas-v2.md).
 
 ### Plan 3 · Doctrine LMS pillar
 
