@@ -1,0 +1,128 @@
+// src/app/(payload)/components/coordinate-picker.scss
+
+.coordinate-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+
+  &__description {
+    margin: 0;
+    color: var(--theme-elevation-600);
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+
+  &__map {
+    border-radius: var(--style-radius-m, 8px);
+    overflow: hidden;
+    border: 1px solid var(--theme-elevation-150);
+    background: var(--theme-elevation-50);
+  }
+
+  &__placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 320px;
+    padding: 1rem 1.5rem;
+    color: var(--theme-elevation-700);
+    text-align: center;
+
+    code {
+      font-family: var(--font-mono);
+      background: var(--theme-elevation-100);
+      padding: 0.1em 0.4em;
+      border-radius: 4px;
+    }
+  }
+
+  &__pin {
+    display: block;
+    width: 14px;
+    height: 14px;
+    border-radius: 999px;
+    background: #8c2a2a; // rubric
+    box-shadow:
+      0 0 0 3px rgba(251, 246, 234, 0.85), // vellum ring
+      0 4px 12px rgba(26, 20, 16, 0.4);
+    cursor: grab;
+
+    &:active {
+      cursor: grabbing;
+    }
+  }
+
+  &__readout {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--theme-elevation-800);
+
+    &--empty {
+      color: var(--theme-elevation-600);
+      font-style: italic;
+    }
+
+    &--hint {
+      color: var(--theme-elevation-600);
+      font-size: 0.8rem;
+    }
+  }
+
+  &__clear {
+    background: transparent;
+    border: 0;
+    color: var(--theme-elevation-700);
+    cursor: pointer;
+    text-decoration: underline;
+    font-size: 0.85rem;
+
+    &:hover {
+      color: var(--theme-elevation-1000);
+    }
+  }
+
+  &__geocode {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    padding-top: 0.25rem;
+  }
+
+  &__geocode-button {
+    background: var(--theme-elevation-100);
+    border: 1px solid var(--theme-elevation-200);
+    color: var(--theme-elevation-1000);
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: background 0.18s ease, color 0.18s ease;
+
+    &:hover:not(:disabled) {
+      background: var(--theme-success-500, #8c2a2a);
+      color: var(--theme-elevation-0);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  &__error {
+    margin: 0;
+    padding: 0.4rem 0.6rem;
+    border-radius: 6px;
+    background: rgba(140, 42, 42, 0.1);
+    color: #8c2a2a;
+    font-size: 0.85rem;
+  }
+}
