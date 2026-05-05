@@ -16,10 +16,11 @@ import {
 } from './types'
 
 // Fixed year range so the slider always represents the full Christian-era
-// span and doesn't re-clamp when the corpus changes. minYear is the earliest
-// rounded century; maxYear is the current year (refreshed at build time).
+// span and doesn't re-clamp when the corpus changes. minYear is rounded to
+// the earliest meaningful century; maxYear tracks the calendar so the
+// slider's right edge stays current as years roll over.
 const MIN_YEAR = 100
-const MAX_YEAR = 2026
+const MAX_YEAR = new Date().getFullYear()
 
 export function AtlasShell({
   miracles,
