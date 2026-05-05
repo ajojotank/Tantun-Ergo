@@ -54,7 +54,7 @@ export default function CoordinatePicker(props: Props) {
   }
 
   function handleClear() {
-    setValue(null as unknown as Coords)
+    setValue(null)
   }
 
   const [geocodeError, setGeocodeError] = useState<string | null>(null)
