@@ -167,25 +167,6 @@ export const Miracles: CollectionConfig = {
       },
     },
     {
-      name: 'inPilgrimage',
-      type: 'checkbox',
-      defaultValue: false,
-      admin: {
-        position: 'sidebar',
-        description:
-          'Promotes this miracle into the curated pilgrimage scrolltelling on /atlas.',
-      },
-    },
-    {
-      name: 'pilgrimageOrder',
-      type: 'number',
-      admin: {
-        position: 'sidebar',
-        description: 'Chapter order in the pilgrimage. Only used when inPilgrimage is true.',
-        condition: (data) => Boolean(data?.inPilgrimage),
-      },
-    },
-    {
       name: '_isSample',
       type: 'checkbox',
       defaultValue: false,
