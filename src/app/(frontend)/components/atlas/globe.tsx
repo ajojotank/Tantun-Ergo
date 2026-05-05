@@ -3,7 +3,6 @@
 
 import 'mapbox-gl/dist/mapbox-gl.css'
 import Map, { AttributionControl, Marker, NavigationControl } from 'react-map-gl/mapbox'
-import { useCallback, useMemo } from 'react'
 
 import { cn } from '@/lib/cn'
 import { type MiracleSummary, PIN_HEX } from './types'
@@ -22,22 +21,6 @@ export function Globe({
   onSelect: (slug: string) => void
   className?: string
 }) {
-  const initial = useMemo(
-    () => ({
-      longitude: 8,
-      latitude: 30,
-      zoom: 1.4,
-    }),
-    [],
-  )
-
-  const handleSelect = useCallback(
-    (slug: string) => {
-      onSelect(slug)
-    },
-    [onSelect],
-  )
-
   if (!TOKEN) {
     return (
       <div
@@ -58,7 +41,7 @@ export function Globe({
     <div className={cn('h-full w-full', className)}>
       <Map
         mapboxAccessToken={TOKEN}
-        initialViewState={initial}
+        initialViewState={{ longitude: 8, latitude: 30, zoom: 1.4 }}
         mapStyle={styleUrl || DEFAULT_STYLE}
         projection={{ name: 'globe' }}
         style={{ width: '100%', height: '100%' }}
@@ -76,7 +59,7 @@ export function Globe({
               // Stop the click from propagating to the Map (which would close
               // any popup / clear the selection).
               e.originalEvent.stopPropagation()
-              handleSelect(m.slug)
+              onSelect(m.slug)
             }}
           >
             <button
