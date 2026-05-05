@@ -9,7 +9,7 @@ export const Miracles: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'type', 'ecclesialStatus', 'yearOccurred', '_status'],
     description:
-      'The Atlas corpus. Each miracle gets a pin on /atlas; the inPilgrimage flag promotes it to the curated scrolltelling chapters.',
+      'The Atlas corpus. Each miracle gets a pin on /atlas. To curate ordered chapter sequences, add miracles to a Pilgrimage (see the Pilgrimages collection).',
     livePreview: {
       url: ({ data }) => {
         const slug = typeof data?.slug === 'string' ? data.slug : ''
