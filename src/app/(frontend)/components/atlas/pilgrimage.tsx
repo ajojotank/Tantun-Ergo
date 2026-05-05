@@ -3,8 +3,8 @@
 
 import 'mapbox-gl/dist/mapbox-gl.css'
 import Map, { AttributionControl, Marker, type MapRef } from 'react-map-gl/mapbox'
-import { motion, useInView } from 'framer-motion'
-import { useEffect, useRef, useState } from 'react'
+import { motion } from 'framer-motion'
+import { type RefObject, useEffect, useRef, useState } from 'react'
 
 import { cn } from '@/lib/cn'
 import { GildedRule } from '../gilded-rule'
@@ -19,6 +19,72 @@ import {
 const TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
 const DEFAULT_STYLE = 'mapbox://styles/mapbox/dark-v11'
 
+function LazyChapterMap({
+  miracle,
+  styleUrl,
+}: {
+  miracle: MiracleSummary
+  styleUrl?: string
+}) {
+  const wrapRef = useRef<HTMLDivElement | null>(null)
+  const [shouldMount, setShouldMount] = useState(false)
+
+  useEffect(() => {
+    const el = wrapRef.current
+    if (!el || shouldMount) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            setShouldMount(true)
+            observer.disconnect()
+            return
+          }
+        }
+      },
+      { rootMargin: '50% 0px' },
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [shouldMount])
+
+  return (
+    <div
+      ref={wrapRef}
+      className="h-80 overflow-hidden rounded-2xl border border-ink/10 bg-ink"
+    >
+      {shouldMount && TOKEN ? (
+        <Map
+          mapboxAccessToken={TOKEN}
+          initialViewState={{
+            longitude: miracle.coordinates[0],
+            latitude: miracle.coordinates[1],
+            zoom: 4.2,
+          }}
+          mapStyle={styleUrl || DEFAULT_STYLE}
+          projection={{ name: 'globe' }}
+          style={{ width: '100%', height: '100%' }}
+          attributionControl={false}
+          interactive={false}
+        >
+          <AttributionControl compact position="bottom-left" />
+          <Marker
+            longitude={miracle.coordinates[0]}
+            latitude={miracle.coordinates[1]}
+            anchor="center"
+          >
+            <span
+              aria-hidden
+              className="block size-3 rounded-full ring-2 ring-vellum"
+              style={{ backgroundColor: PIN_HEX[miracle.type] }}
+            />
+          </Marker>
+        </Map>
+      ) : null}
+    </div>
+  )
+}
+
 export function Pilgrimage({
   miracles,
   styleUrl,
@@ -30,7 +96,10 @@ export function Pilgrimage({
   onViewAll: () => void
   className?: string
 }) {
-  const [activeIdx, setActiveIdx] = useState(0)
+  // One ref slot per chapter, lifted out of Chapter so the parent owns
+  // activation deterministically.
+  const chapterRefs = useRef<Array<HTMLLIElement | null>>([])
+  const activeIdx = useChapterActivation(chapterRefs, miracles.length)
   const mapRef = useRef<MapRef | null>(null)
 
   // When activeIdx changes, fly to that miracle's coordinates.
@@ -62,7 +131,6 @@ export function Pilgrimage({
 
   return (
     <div className={cn('relative mx-auto w-full max-w-7xl px-5 sm:px-8', className)}>
-      {/* Mobile: stacked single column. md+: 2-col with sticky map */}
       <div className="grid gap-12 md:grid-cols-[1fr_minmax(0,46%)] md:gap-10">
         <ol className="flex flex-col gap-24 md:gap-32 md:py-16">
           {miracles.map((m, idx) => (
@@ -71,7 +139,11 @@ export function Pilgrimage({
               miracle={m}
               index={idx}
               total={miracles.length}
-              onActive={() => setActiveIdx(idx)}
+              isActive={idx === activeIdx}
+              styleUrl={styleUrl}
+              setRef={(el) => {
+                chapterRefs.current[idx] = el
+              }}
             />
           ))}
         </ol>
@@ -139,27 +211,79 @@ export function Pilgrimage({
   )
 }
 
+// Single IntersectionObserver over all chapter refs. The active chapter is
+// the one whose entry currently has the highest intersectionRatio. This
+// avoids the flip-order race that per-child useInView hooks suffer on fast
+// scroll, and gives the parent a single source of truth for the active idx.
+function useChapterActivation(
+  refsRef: RefObject<Array<HTMLLIElement | null>>,
+  count: number,
+) {
+  const [activeIdx, setActiveIdx] = useState(0)
+
+  useEffect(() => {
+    if (count === 0) return
+    // Plain Record (the global `Map` is shadowed here by the react-map-gl
+    // `Map` component import).
+    const ratios: Record<number, number> = {}
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          const idx = Number(
+            (entry.target as HTMLElement).dataset.chapterIdx ?? '-1',
+          )
+          if (idx >= 0) ratios[idx] = entry.intersectionRatio
+        }
+        let bestIdx = 0
+        let bestRatio = -1
+        for (const key of Object.keys(ratios)) {
+          const idx = Number(key)
+          const ratio = ratios[idx]
+          if (ratio > bestRatio) {
+            bestRatio = ratio
+            bestIdx = idx
+          }
+        }
+        setActiveIdx((prev) => (prev === bestIdx ? prev : bestIdx))
+      },
+      {
+        // Inner band — pick the chapter most centred in the viewport.
+        rootMargin: '-30% 0px -30% 0px',
+        threshold: [0, 0.25, 0.5, 0.75, 1],
+      },
+    )
+
+    const els = refsRef.current ?? []
+    els.forEach((el, idx) => {
+      if (!el) return
+      el.dataset.chapterIdx = String(idx)
+      observer.observe(el)
+    })
+    return () => observer.disconnect()
+  }, [count, refsRef])
+
+  return activeIdx
+}
+
 function Chapter({
   miracle,
   index,
   total,
-  onActive,
+  isActive,
+  styleUrl,
+  setRef,
 }: {
   miracle: MiracleSummary
   index: number
   total: number
-  onActive: () => void
+  isActive: boolean
+  styleUrl?: string
+  setRef: (el: HTMLLIElement | null) => void
 }) {
-  const ref = useRef<HTMLLIElement | null>(null)
-  const inView = useInView(ref, { margin: '-40% 0px -40% 0px', amount: 0.4 })
-
-  useEffect(() => {
-    if (inView) onActive()
-  }, [inView, onActive])
-
   return (
     <motion.li
-      ref={ref}
+      ref={setRef}
+      aria-current={isActive ? 'step' : undefined}
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-15% 0px' }}
@@ -181,36 +305,9 @@ function Chapter({
         {miracle.summary}
       </p>
 
-      {/* Mobile inline map (no sticky) */}
-      <div className="mt-6 h-64 overflow-hidden rounded-2xl border border-ink/10 bg-ink md:hidden">
-        {TOKEN ? (
-          <Map
-            mapboxAccessToken={TOKEN}
-            initialViewState={{
-              longitude: miracle.coordinates[0],
-              latitude: miracle.coordinates[1],
-              zoom: 4.2,
-            }}
-            mapStyle={DEFAULT_STYLE}
-            projection={{ name: 'globe' }}
-            style={{ width: '100%', height: '100%' }}
-            attributionControl={false}
-            interactive={false}
-          >
-            <AttributionControl compact position="bottom-left" />
-            <Marker
-              longitude={miracle.coordinates[0]}
-              latitude={miracle.coordinates[1]}
-              anchor="center"
-            >
-              <span
-                aria-hidden
-                className="block size-3 rounded-full ring-2 ring-vellum"
-                style={{ backgroundColor: PIN_HEX[miracle.type] }}
-              />
-            </Marker>
-          </Map>
-        ) : null}
+      {/* Mobile inline map — lazy-mounted via LazyChapterMap */}
+      <div className="mt-6 md:hidden">
+        <LazyChapterMap miracle={miracle} styleUrl={styleUrl} />
       </div>
 
       {miracle.sources.length > 0 ? (
