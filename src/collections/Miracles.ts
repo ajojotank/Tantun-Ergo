@@ -76,6 +76,83 @@ export const Miracles: CollectionConfig = {
             },
           ],
         },
+        {
+          label: 'Provenance',
+          fields: [
+            {
+              name: 'type',
+              type: 'select',
+              required: true,
+              options: [
+                { label: 'Eucharistic', value: 'eucharistic' },
+                { label: 'Marian', value: 'marian' },
+                { label: 'Healing', value: 'healing' },
+                { label: 'Stigmata', value: 'stigmata' },
+                { label: 'Incorruptible', value: 'incorruptible' },
+                { label: 'Other', value: 'other' },
+              ],
+            },
+            {
+              name: 'ecclesialStatus',
+              type: 'select',
+              required: true,
+              options: [
+                { label: 'Approved', value: 'approved' },
+                { label: 'Recognised', value: 'recognised' },
+                { label: 'Worthy of belief', value: 'worthy-of-belief' },
+                { label: 'Under investigation', value: 'under-investigation' },
+                { label: 'Not constatat', value: 'not-constatat' },
+              ],
+            },
+            {
+              name: 'locationName',
+              type: 'text',
+              required: true,
+              admin: { description: 'Human-readable place name, e.g. "Lanciano, Italy".' },
+            },
+            {
+              name: 'coordinates',
+              type: 'point',
+              required: true,
+              admin: {
+                description:
+                  'Pin position. Payload stores [longitude, latitude] — the same order Mapbox expects.',
+              },
+            },
+            {
+              name: 'yearOccurred',
+              type: 'number',
+              required: true,
+              admin: { description: 'Year only (no month/day). Negative for BC.' },
+            },
+            {
+              name: 'dateApproximate',
+              type: 'checkbox',
+              defaultValue: false,
+              admin: { description: 'Renders as "c. 700" instead of "700" when true.' },
+            },
+            { name: 'approvalDate', type: 'date' },
+            {
+              name: 'approvingAuthority',
+              type: 'text',
+              admin: { description: 'e.g. "Bishop of Tours, 1574".' },
+            },
+          ],
+        },
+        {
+          label: 'SEO',
+          fields: [
+            {
+              name: 'meta',
+              type: 'group',
+              fields: [
+                { name: 'title', type: 'text' },
+                { name: 'description', type: 'textarea' },
+                { name: 'ogImage', type: 'upload', relationTo: 'media' },
+              ],
+            },
+          ],
+        },
       ],
     },
   ],
