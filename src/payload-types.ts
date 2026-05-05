@@ -71,6 +71,7 @@ export interface Config {
     media: Media;
     articles: Article;
     miracles: Miracle;
+    pilgrimages: Pilgrimage;
     'payload-kv': PayloadKv;
     'payload-jobs': PayloadJob;
     'payload-locked-documents': PayloadLockedDocument;
@@ -83,6 +84,7 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     articles: ArticlesSelect<false> | ArticlesSelect<true>;
     miracles: MiraclesSelect<false> | MiraclesSelect<true>;
+    pilgrimages: PilgrimagesSelect<false> | PilgrimagesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -366,15 +368,56 @@ export interface Miracle {
    */
   slug: string;
   /**
-   * Promotes this miracle into the curated pilgrimage scrolltelling on /atlas.
-   */
-  inPilgrimage?: boolean | null;
-  /**
-   * Chapter order in the pilgrimage. Only used when inPilgrimage is true.
-   */
-  pilgrimageOrder?: number | null;
-  /**
    * Marks this miracle as filler. Frontend renders a [Sample] badge.
+   */
+  _isSample?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * Curated routes through the Miracle Atlas. Each pilgrimage is an ordered list of miracles the end-user walks as a scrolltelling chapter sequence at /atlas/pilgrimages/{slug}.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pilgrimages".
+ */
+export interface Pilgrimage {
+  id: number;
+  title: string;
+  /**
+   * Single-line tagline shown beneath the title on the gallery plate.
+   */
+  subtitle?: string | null;
+  /**
+   * 1–2 sentence framing displayed on the walker page above the first chapter.
+   */
+  intro?: string | null;
+  /**
+   * Hero plate for the gallery card and walker page.
+   */
+  coverImage?: (number | null) | Media;
+  /**
+   * Ordered list of miracles. Drag to reorder; the order here is the chapter sequence the user walks.
+   */
+  route: {
+    miracle: number | Miracle;
+    /**
+     * Optional override for this stop on this pilgrimage. Leave blank to use the miracle's default summary.
+     */
+    chapterNote?: string | null;
+    id?: string | null;
+  }[];
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+    ogImage?: (number | null) | Media;
+  };
+  /**
+   * URL fragment under /atlas/pilgrimages/.
+   */
+  slug: string;
+  /**
+   * Marks this pilgrimage as filler. Frontend renders a [Sample] badge.
    */
   _isSample?: boolean | null;
   updatedAt: string;
@@ -512,6 +555,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'miracles';
         value: number | Miracle;
+      } | null)
+    | ({
+        relationTo: 'pilgrimages';
+        value: number | Pilgrimage;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -707,8 +754,35 @@ export interface MiraclesSelect<T extends boolean = true> {
         ogImage?: T;
       };
   slug?: T;
-  inPilgrimage?: T;
-  pilgrimageOrder?: T;
+  _isSample?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pilgrimages_select".
+ */
+export interface PilgrimagesSelect<T extends boolean = true> {
+  title?: T;
+  subtitle?: T;
+  intro?: T;
+  coverImage?: T;
+  route?:
+    | T
+    | {
+        miracle?: T;
+        chapterNote?: T;
+        id?: T;
+      };
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        ogImage?: T;
+      };
+  slug?: T;
   _isSample?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -1181,6 +1255,10 @@ export interface TaskSchedulePublish {
       | ({
           relationTo: 'miracles';
           value: number | Miracle;
+        } | null)
+      | ({
+          relationTo: 'pilgrimages';
+          value: number | Pilgrimage;
         } | null);
     global?: ('home-page' | 'manifesto-page' | 'credits-page') | null;
     user?: (number | null) | User;

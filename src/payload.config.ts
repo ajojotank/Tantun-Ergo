@@ -11,6 +11,7 @@ import sharp from 'sharp'
 import { Articles } from './collections/Articles'
 import { Media } from './collections/Media'
 import { Miracles } from './collections/Miracles'
+import { Pilgrimages } from './collections/Pilgrimages'
 import { Users } from './collections/Users'
 import { initRawTables } from './db/init-raw-tables'
 import { CreditsPage } from './globals/CreditsPage'
@@ -114,7 +115,7 @@ export default buildConfig({
       },
     },
   },
-  collections: [Users, Media, Articles, Miracles],
+  collections: [Users, Media, Articles, Miracles, Pilgrimages],
   globals: [Settings, HomePage, ManifestoPage, CreditsPage],
   plugins,
   cors: [serverURL].filter(Boolean),
