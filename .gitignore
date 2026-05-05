@@ -36,7 +36,6 @@ yarn-error.log*
 
 # payload
 /media
-/src/payload-types.ts
 /src/generated-schema.graphql
 
 # vercel
