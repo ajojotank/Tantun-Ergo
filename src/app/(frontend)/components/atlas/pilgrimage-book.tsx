@@ -3,6 +3,7 @@
 
 import { AnimatePresence, motion, type PanInfo } from 'framer-motion'
 import Image from 'next/image'
+import Link from 'next/link'
 import { useCallback, useEffect, useRef } from 'react'
 
 import { cn } from '@/lib/cn'
@@ -172,19 +173,29 @@ export function PilgrimageBook({
           <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
             Chapter {romanize(activeIdx + 1)} of {romanize(total)}
           </p>
-          <button
-            type="button"
-            onClick={onNext}
-            disabled={isLast}
-            aria-label="Next chapter"
-            className={cn(
-              'inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.22em] transition-colors',
-              isLast ? 'text-ink-soft/30' : 'text-ink-soft hover:text-ink',
-            )}
-          >
-            Next
-            <span aria-hidden>→</span>
-          </button>
+          {isLast ? (
+            // End of the pilgrimage — replace the disabled Next button with a
+            // link back to the gallery so the user has a clear forward path
+            // to choose another pilgrimage instead of dead-ending.
+            <Link
+              href="/atlas/pilgrimages"
+              aria-label="Return to all pilgrimages"
+              className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.22em] text-rubric transition-colors hover:text-rubric-deep"
+            >
+              All pilgrimages
+              <span aria-hidden>→</span>
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={onNext}
+              aria-label="Next chapter"
+              className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.22em] text-ink-soft transition-colors hover:text-ink"
+            >
+              Next
+              <span aria-hidden>→</span>
+            </button>
+          )}
         </div>
 
         <div
