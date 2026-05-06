@@ -58,6 +58,23 @@ const MAP_PADDING_MOBILE = {
   right: 0,
 } as const
 
+// Zoom-out cinematic — used when the user clicks "Back to list" or hovers
+// a different card after viewing a detail. Returns the camera to the globe
+// browse altitude (zoom 2, pitch 0) so the next interaction reads as
+// "looking at the planet" instead of teleporting between buildings.
+const GLOBE_FLY_OPTS = {
+  zoom: 2,
+  pitch: 0,
+  duration: 1400,
+  essential: true,
+} as const
+
+// Above this zoom level, hover easeTo also resets zoom + pitch back to the
+// globe view (otherwise the camera "teleports" between distant pins at
+// building scale). At/below this, hover preserves the user's manual zoom
+// — they're already at globe-browse altitude or panning around.
+const HOVER_RESET_ZOOM_THRESHOLD = 10
+
 export function AtlasShell({
   miracles,
   styleUrl,
@@ -136,8 +153,18 @@ export function AtlasShell({
     [miracles, selectedSlug],
   )
 
+  // Track whether the user was previously viewing a detail, so we can fly
+  // the camera back to the globe browse view when they clear the
+  // selection (back button OR second empty-map click). Initialised from
+  // initialFocusSlug so a deep-link to /atlas?focus=… doesn't trigger a
+  // spurious zoom-out on first paint.
+  const prevSelectedRef = useRef<string | null>(initialFocusSlug ?? null)
+
   // Start a slow 360° orbit around the selected miracle once the flyTo
-  // settles. Stops on selection change or any user map interaction.
+  // settles. Stops on selection change or any user map interaction. When
+  // selection clears (transition from non-null → null), also fly the
+  // camera back to the globe browse view so the user gets the "look at
+  // the whole planet" framing instead of being stuck at building zoom.
   useEffect(() => {
     // Always cancel any prior orbit on selection change. Stopping fires
     // onStop which clears `isOrbiting`; no direct setState here (would be a
@@ -145,7 +172,25 @@ export function AtlasShell({
     orbitRef.current?.stop()
     orbitRef.current = null
 
-    if (!selectedSlug) return
+    const wasSelected = prevSelectedRef.current !== null
+    prevSelectedRef.current = selectedSlug
+
+    if (!selectedSlug) {
+      // Selection just cleared — fly back to globe browse view. Only do
+      // this when we were actually viewing a detail (wasSelected); on
+      // initial mount when selectedSlug starts null, skip.
+      if (wasSelected) {
+        const desktopVisible =
+          desktopMapRef.current && isMapVisible(desktopMapRef.current)
+        const target = desktopVisible
+          ? desktopMapRef.current
+          : mobileMapRef.current
+        // No `center` — keep the user's spatial context (the globe just
+        // rotates back / pulls out around whatever pin they were viewing).
+        target?.flyTo({ ...GLOBE_FLY_OPTS })
+      }
+      return
+    }
 
     // Wait until flyTo's animation has settled, then orbit.
     const startTimer = window.setTimeout(() => {
@@ -169,7 +214,7 @@ export function AtlasShell({
       orbitRef.current = null
       // setIsOrbiting(false) covered by orbit's onStop on the line above.
     }
-  }, [selectedSlug])
+  }, [selectedSlug, initialFocusSlug])
 
   // Keep the URL in sync with selection (cheap — no React re-render, no
   // data refetch). Survives refresh because the server already reads
@@ -183,13 +228,17 @@ export function AtlasShell({
     }
   }, [selectedSlug])
 
-  // Hover-to-rotate: pan the globe to the hovered card's coordinates without
-  // changing zoom or pitch. Subtle — gives the user a sense of where each
-  // miracle sits while they browse, without committing to the dramatic
-  // selection flyTo. Yields to selection: if anything is currently selected
-  // (and therefore the orbit is or will be running), hover is ignored.
-  // Debounced 250ms so rapidly tabbing/mousing through cards doesn't thrash
-  // the camera; only the last hover within the window actually fires.
+  // Hover-to-rotate: pan the globe to the hovered card's coordinates.
+  // Yields to selection: if anything is currently selected (orbit running),
+  // hover is ignored. Debounced 250ms so rapid tab/mouse movement through
+  // cards doesn't thrash the camera; only the last hover within the
+  // window actually fires.
+  //
+  // Zoom-aware: if the camera is currently above HOVER_RESET_ZOOM_THRESHOLD
+  // (i.e. we just flew back from a detail view, or the user manually zoomed
+  // in), the easeTo also resets zoom + pitch back to the globe browse
+  // view. Otherwise the camera would "teleport" between far-apart pins at
+  // building scale, which reads as disorienting. At low zoom we just pan.
   useEffect(() => {
     if (selectedSlug) return
     if (!hoveredSlug) return
@@ -203,11 +252,22 @@ export function AtlasShell({
     if (!target) return
 
     const timer = window.setTimeout(() => {
-      target.easeTo({
-        center: m.coordinates,
-        duration: 800,
-        essential: true,
-      })
+      const currentZoom = target.getMap().getZoom()
+      if (currentZoom > HOVER_RESET_ZOOM_THRESHOLD) {
+        target.easeTo({
+          center: m.coordinates,
+          zoom: GLOBE_FLY_OPTS.zoom,
+          pitch: GLOBE_FLY_OPTS.pitch,
+          duration: GLOBE_FLY_OPTS.duration,
+          essential: true,
+        })
+      } else {
+        target.easeTo({
+          center: m.coordinates,
+          duration: 800,
+          essential: true,
+        })
+      }
     }, 250)
     return () => window.clearTimeout(timer)
   }, [hoveredSlug, selectedSlug, miracles])
