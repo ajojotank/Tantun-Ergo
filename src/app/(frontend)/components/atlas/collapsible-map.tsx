@@ -13,9 +13,14 @@ const SPRING = { type: 'spring', stiffness: 220, damping: 30, mass: 0.6 } as con
 
 export function CollapsibleMap({
   children,
+  onResize,
   className,
 }: {
   children: ReactNode
+  /** Fires after the height animation completes — wire this to map.resize()
+      so Mapbox's canvas refits the new container size (otherwise the bottom
+      of the expanded wrapper shows as black until the next user gesture). */
+  onResize?: () => void
   className?: string
 }) {
   const [expanded, setExpanded] = useState(false)
@@ -24,6 +29,9 @@ export function CollapsibleMap({
     <motion.div
       animate={{ height: expanded ? EXPANDED_HEIGHT : COLLAPSED_HEIGHT }}
       transition={SPRING}
+      onAnimationComplete={() => {
+        onResize?.()
+      }}
       className={cn(
         'sticky top-0 z-20 w-full overflow-hidden border-b border-ink/10 bg-ink',
         className,
@@ -31,7 +39,6 @@ export function CollapsibleMap({
     >
       <div className="absolute inset-0">{children}</div>
 
-      {/* Toggle handle — bottom-centre when collapsed, top-right when expanded. */}
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}

@@ -153,7 +153,7 @@ export function AtlasShell({
         <div className="mx-auto w-full max-w-3xl px-5 pt-2 pb-4 sm:px-8">
           {filterChips}
         </div>
-        <CollapsibleMap>
+        <CollapsibleMap onResize={() => mobileMapRef.current?.getMap().resize()}>
           <Globe
             miracles={visibleMiracles}
             styleUrl={styleUrl}
