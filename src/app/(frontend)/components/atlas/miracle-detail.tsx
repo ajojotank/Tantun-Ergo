@@ -36,18 +36,27 @@ export function MiracleDetail({
   onBack: () => void
 }) {
   const backButtonRef = useRef<HTMLButtonElement | null>(null)
+  // Hold onBack in a ref so the mount effect below can run once with [] and
+  // still read the latest handler. Without this, AtlasShell passing a fresh
+  // arrow on every render would re-install the keydown listener and yank
+  // focus on every parent re-render — visible jank during orbit/flyTo.
+  const onBackRef = useRef(onBack)
+  useEffect(() => {
+    onBackRef.current = onBack
+  }, [onBack])
 
   useEffect(() => {
     // Focus the back button on mount so keyboard users can immediately
-    // press Enter to return. Same pattern the old MiracleDrawer used —
-    // setTimeout(0) defers focus to after the DOM commit.
+    // press Enter to return. setTimeout(0) defers focus to after the DOM
+    // commit. On unmount, restore focus to whatever was focused before
+    // (typically the card the user clicked).
     const previouslyFocused = document.activeElement as HTMLElement | null
     const focusTimer = window.setTimeout(() => {
       backButtonRef.current?.focus()
     }, 0)
 
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onBack()
+      if (e.key === 'Escape') onBackRef.current()
     }
     window.addEventListener('keydown', onKey)
     return () => {
@@ -55,10 +64,13 @@ export function MiracleDetail({
       window.removeEventListener('keydown', onKey)
       previouslyFocused?.focus?.()
     }
-  }, [onBack])
+  }, [])
 
   return (
-    <div className="relative flex flex-col">
+    <section
+      aria-labelledby="miracle-detail-title"
+      className="relative flex flex-col"
+    >
       {/* Sticky action bar: Back left, pause/play right. Pins to the top of
           the scroll container so the user can always escape regardless of
           how far they've scrolled into the narrative. */}
@@ -177,12 +189,12 @@ export function MiracleDetail({
           </div>
         ) : null}
       </div>
-    </div>
+    </section>
   )
 }
 
 // Permissive Lexical walker — paragraphs and inline text only. Lifted
-// verbatim from miracle-drawer.tsx; same rationale (richer formatting can
+// from miracle-drawer.tsx; same rationale (richer formatting can
 // switch to @payloadcms/richtext-lexical/react's <RichText/> later).
 function NarrativeBlock({ node }: { node: unknown }) {
   const root = (node as { root?: { children?: unknown[] } } | null)?.root
