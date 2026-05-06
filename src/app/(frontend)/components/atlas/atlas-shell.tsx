@@ -258,12 +258,16 @@ export function AtlasShell({
         <ModeToggle />
       </header>
 
-      {/* Mobile: chips → collapsible map → timeline → cards. */}
+      {/* Mobile: chips → collapsible map → timeline → cards. When a card is
+          selected, filter bar and list are replaced by the detail view. The
+          collapsible map at top stays put — same mental model as desktop. */}
       <div className="md:hidden">
-        <div className="mx-auto flex w-full max-w-3xl flex-col gap-3 px-5 pt-2 pb-4 sm:px-8">
-          {searchInput}
-          {filterChips}
-        </div>
+        {!selected ? (
+          <div className="mx-auto flex w-full max-w-3xl flex-col gap-3 px-5 pt-2 pb-4 sm:px-8">
+            {searchInput}
+            {filterChips}
+          </div>
+        ) : null}
         <CollapsibleMap onResize={() => mobileMapRef.current?.getMap().resize()}>
           <Globe
             miracles={visibleMiracles}
@@ -275,20 +279,32 @@ export function AtlasShell({
             mapRef={mobileMapRef}
           />
         </CollapsibleMap>
-        <div className="mx-auto w-full max-w-3xl px-5 py-6 sm:px-8">
-          {timelineScrub}
-          <p className="mt-6 font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-            {visibleMiracles.length} of {miracles.length} miracles
-          </p>
-          <MiracleList
-            miracles={visibleMiracles}
-            selectedSlug={selectedSlug}
-            hoveredSlug={hoveredSlug}
-            onSelect={handleSelect}
-            onHover={setHoveredSlug}
-            className="mt-3"
-          />
-        </div>
+        {selected ? (
+          <div className="mx-auto w-full max-w-3xl px-5 py-4 sm:px-8">
+            <MiracleDetail
+              key={selected.slug}
+              miracle={selected}
+              isOrbiting={isOrbiting}
+              onTogglePlayPause={togglePlayPause}
+              onBack={() => setSelectedSlug(null)}
+            />
+          </div>
+        ) : (
+          <div className="mx-auto w-full max-w-3xl px-5 py-6 sm:px-8">
+            {timelineScrub}
+            <p className="mt-6 font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
+              {visibleMiracles.length} of {miracles.length} miracles
+            </p>
+            <MiracleList
+              miracles={visibleMiracles}
+              selectedSlug={selectedSlug}
+              hoveredSlug={hoveredSlug}
+              onSelect={handleSelect}
+              onHover={setHoveredSlug}
+              className="mt-3"
+            />
+          </div>
+        )}
       </div>
 
       {/* DESKTOP: 2-column work area. Left col is the single scroll container
