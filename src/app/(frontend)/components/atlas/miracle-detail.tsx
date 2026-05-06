@@ -193,9 +193,9 @@ export function MiracleDetail({
   )
 }
 
-// Permissive Lexical walker — paragraphs and inline text only. Lifted
-// from miracle-drawer.tsx; same rationale (richer formatting can
-// switch to @payloadcms/richtext-lexical/react's <RichText/> later).
+// Permissive Lexical walker — paragraphs and inline text only. Switch
+// to @payloadcms/richtext-lexical/react's <RichText/> when richer
+// narrative formatting (headings, lists, links) is needed.
 function NarrativeBlock({ node }: { node: unknown }) {
   const root = (node as { root?: { children?: unknown[] } } | null)?.root
   const children = Array.isArray(root?.children) ? root!.children : []

@@ -189,10 +189,12 @@ export function AtlasShell({
   }
 
   function handleDeselect() {
-    // If rotation is active, the user clicking an empty area of the map is
-    // most likely trying to stop the rotation — not dismiss the drawer.
-    // Stop rotation; keep drawer open. A second click (no rotation now) will
-    // close the drawer.
+    // Two-stage click on empty map area: if orbit is running, stop the
+    // orbit (the user is most likely trying to read while looking around);
+    // otherwise, close the detail view. Preserved from the v2 drawer era —
+    // the detail view also has its own pause/play in its sticky header,
+    // so this map-click heuristic is now belt-and-braces, not the only
+    // way to halt rotation.
     if (orbitRef.current && isOrbiting) {
       orbitRef.current.stop()
       return
@@ -391,7 +393,6 @@ export function AtlasShell({
           </div>
         </div>
       </div>
-
     </div>
   )
 }
