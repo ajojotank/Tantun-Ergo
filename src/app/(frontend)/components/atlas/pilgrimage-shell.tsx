@@ -142,7 +142,7 @@ export function PilgrimageShell({
       {/* Desktop: 42%/1fr split with sticky map on the right. */}
       <div className="hidden md:flex md:flex-1 md:overflow-hidden">
         <div className="grid h-full w-full grid-cols-[minmax(380px,42%)_minmax(0,1fr)] overflow-hidden">
-          <div className="atlas-scroll relative h-full overflow-hidden">
+          <div className="relative h-full overflow-hidden">
             <PilgrimageBook
               stops={stops}
               activeIdx={activeIdx}

@@ -48,6 +48,10 @@ export function PilgrimageBook({
   // parent can pass inline arrows without re-installing the listener.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
+      // Don't hijack OS-level shortcuts. Cmd+ArrowLeft (macOS browser back),
+      // Alt+ArrowLeft (Win/Linux browser back), and any other modifier combo
+      // belong to the browser/OS, not the chapter pager.
+      if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return
       // Don't hijack typing in inputs (none expected in this view, but be safe).
       const target = e.target as HTMLElement | null
       if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) return
@@ -107,10 +111,11 @@ export function PilgrimageBook({
             exit={{ opacity: 0, x: -40 }}
             transition={{ type: 'spring', stiffness: 220, damping: 30, mass: 0.7 }}
             drag="x"
+            dragDirectionLock
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.2}
             onDragEnd={handleDragEnd}
-            className="absolute inset-0 flex flex-col gap-6 overflow-y-auto px-6 pb-24 pt-6 lg:px-10"
+            className="atlas-scroll absolute inset-0 flex flex-col gap-6 overflow-y-auto px-6 pb-24 pt-6 lg:px-10"
           >
             <Chapter stop={stop} index={activeIdx} total={total} />
           </motion.article>
