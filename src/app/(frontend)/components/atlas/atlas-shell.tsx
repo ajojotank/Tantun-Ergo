@@ -37,11 +37,28 @@ const FLY_TO_OPTS = {
   essential: true,
 } as const
 
-// Drawer offsets — flyTo's `padding` shifts the visual centre so the pin
-// lands NOT under the drawer. Desktop drawer is 440px on the right; mobile
-// drawer is a bottom-sheet at ~80dvh, so we offset upward.
-const DRAWER_PADDING_DESKTOP = { top: 0, bottom: 0, left: 0, right: 440 } as const
-const DRAWER_PADDING_MOBILE = { top: 0, bottom: 320, left: 0, right: 0 } as const
+// Padding shifts the camera's centre INWARD from each edge. We use it for two
+// distinct reasons:
+//
+//  1. Drawer offset — `right: 440` (desktop) / `bottom: 320` (mobile) keeps
+//     the pin in the visible portion of the map, NOT under the drawer.
+//
+//  2. Pitched-camera headroom — at pitch 60 the 3D building extrudes UP from
+//     the pin's screen position. Without `top` padding, the cathedral's top
+//     half clips off the screen. `top: 120` (desktop) / `60` (mobile) puts
+//     the pin lower on screen so the building has room to extend above it.
+const DRAWER_PADDING_DESKTOP = {
+  top: 120,
+  bottom: 0,
+  left: 0,
+  right: 440,
+} as const
+const DRAWER_PADDING_MOBILE = {
+  top: 60,
+  bottom: 320,
+  left: 0,
+  right: 0,
+} as const
 
 export function AtlasShell({
   miracles,
