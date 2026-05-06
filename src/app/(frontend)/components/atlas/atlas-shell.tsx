@@ -229,10 +229,13 @@ export function AtlasShell({
         </div>
       </div>
 
-      {/* Desktop: list left + sticky 3D globe right */}
+      {/* Desktop: list left + sticky 3D globe right.
+          Both columns are sticky-positioned at 100dvh — the list scrolls inside
+          its column, the map fills its column. Page can still scroll past the
+          hero; once the work area is at top, internal scroll takes over. */}
       <div className="hidden md:block">
         <div className="mx-auto grid w-full max-w-[1600px] grid-cols-[minmax(0,1fr)_minmax(0,55%)] border-y border-ink/10">
-          <div className="flex flex-col gap-6 px-6 py-8 lg:px-10">
+          <div className="sticky top-0 flex h-[100dvh] flex-col gap-6 overflow-y-auto px-6 py-8 lg:px-10">
             <div className="flex flex-col gap-3">
               {searchInput}
               {filterChips}
@@ -249,18 +252,16 @@ export function AtlasShell({
               onHover={setHoveredSlug}
             />
           </div>
-          <div className="relative">
-            <div className="sticky top-0 h-[100dvh] bg-ink">
-              <Globe
-                miracles={visibleMiracles}
-                styleUrl={styleUrl}
-                hoveredSlug={hoveredSlug}
-                onHover={setHoveredSlug}
-                onSelect={handleSelect}
-                onDeselect={handleDeselect}
-                mapRef={desktopMapRef}
-              />
-            </div>
+          <div className="sticky top-0 h-[100dvh] bg-ink">
+            <Globe
+              miracles={visibleMiracles}
+              styleUrl={styleUrl}
+              hoveredSlug={hoveredSlug}
+              onHover={setHoveredSlug}
+              onSelect={handleSelect}
+              onDeselect={handleDeselect}
+              mapRef={desktopMapRef}
+            />
           </div>
         </div>
       </div>
