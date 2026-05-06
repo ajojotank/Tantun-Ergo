@@ -7,6 +7,7 @@ import { type MapRef } from 'react-map-gl/mapbox'
 import { CollapsibleMap } from './collapsible-map'
 import { FilterChips } from './filter-chips'
 import { Globe } from './globe'
+import { MiracleDetail } from './miracle-detail'
 import { MiracleDrawer } from './miracle-drawer'
 import { MiracleList } from './miracle-list'
 import { ModeToggle } from './mode-toggle'
@@ -296,46 +297,60 @@ export function AtlasShell({
           only place scroll can happen on desktop. */}
       <div className="hidden md:flex md:flex-1 md:overflow-hidden">
         <div className="grid h-full w-full grid-cols-[minmax(380px,42%)_minmax(0,1fr)] overflow-hidden">
-          {/* LEFT: single scroll container */}
+          {/* LEFT: single scroll container. Either list view (default) or
+              MiracleDetail (when a card is selected). Map column on the
+              right is never covered. */}
           <div className="atlas-scroll relative h-full overflow-y-auto overscroll-y-none">
-            {/* Hero — scrolls with the column on first interaction. */}
-            <header className="flex flex-col gap-4 px-6 py-10 lg:px-10 lg:py-14">
-              <div>
-                <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-rubric">
-                  Plate I · Cartography
-                </p>
-                <h1 className="mt-3 font-display text-5xl italic leading-tight tracking-tight text-ink lg:text-6xl xl:text-7xl">
-                  The Miracle Atlas
-                </h1>
-                <p className="mt-4 max-w-[55ch] text-base leading-relaxed text-ink-soft lg:text-lg">
-                  A globe of approved miracles, anchored to coordinates and
-                  centuries. Wander the whole record, or walk a curated
-                  pilgrimage.
-                </p>
-              </div>
-              <ModeToggle />
-            </header>
-
-            {/* Sticky filter bar — pins to the top of the column so filters stay
-                reachable while the list scrolls. */}
-            <div className="sticky top-0 z-10 flex flex-col gap-3 border-b border-ink/10 bg-vellum/95 px-6 py-4 backdrop-blur lg:px-10">
-              {searchInput}
-              {filterChips}
-              {timelineScrub}
-            </div>
-
-            <div className="flex flex-col gap-4 px-6 py-6 lg:px-10">
-              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-                {visibleMiracles.length} of {miracles.length} miracles
-              </p>
-              <MiracleList
-                miracles={visibleMiracles}
-                selectedSlug={selectedSlug}
-                hoveredSlug={hoveredSlug}
-                onSelect={handleSelect}
-                onHover={setHoveredSlug}
+            {selected ? (
+              <MiracleDetail
+                key={selected.slug}
+                miracle={selected}
+                isOrbiting={isOrbiting}
+                onTogglePlayPause={togglePlayPause}
+                onBack={() => setSelectedSlug(null)}
               />
-            </div>
+            ) : (
+              <>
+                {/* Hero — scrolls with the column on first interaction. */}
+                <header className="flex flex-col gap-4 px-6 py-10 lg:px-10 lg:py-14">
+                  <div>
+                    <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-rubric">
+                      Plate I · Cartography
+                    </p>
+                    <h1 className="mt-3 font-display text-5xl italic leading-tight tracking-tight text-ink lg:text-6xl xl:text-7xl">
+                      The Miracle Atlas
+                    </h1>
+                    <p className="mt-4 max-w-[55ch] text-base leading-relaxed text-ink-soft lg:text-lg">
+                      A globe of approved miracles, anchored to coordinates and
+                      centuries. Wander the whole record, or walk a curated
+                      pilgrimage.
+                    </p>
+                  </div>
+                  <ModeToggle />
+                </header>
+
+                {/* Sticky filter bar — pins to the top of the column so filters stay
+                    reachable while the list scrolls. */}
+                <div className="sticky top-0 z-10 flex flex-col gap-3 border-b border-ink/10 bg-vellum/95 px-6 py-4 backdrop-blur lg:px-10">
+                  {searchInput}
+                  {filterChips}
+                  {timelineScrub}
+                </div>
+
+                <div className="flex flex-col gap-4 px-6 py-6 lg:px-10">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
+                    {visibleMiracles.length} of {miracles.length} miracles
+                  </p>
+                  <MiracleList
+                    miracles={visibleMiracles}
+                    selectedSlug={selectedSlug}
+                    hoveredSlug={hoveredSlug}
+                    onSelect={handleSelect}
+                    onHover={setHoveredSlug}
+                  />
+                </div>
+              </>
+            )}
           </div>
 
           {/* RIGHT: fixed-height globe. Doesn't scroll. */}
