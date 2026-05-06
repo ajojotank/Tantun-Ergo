@@ -30,7 +30,7 @@ export function SearchInput({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         aria-label="Search miracles"
-        className="w-full bg-transparent font-display text-base italic leading-none text-ink placeholder:text-ink-soft/70 focus:outline-none"
+        className="w-full bg-transparent font-display text-base italic leading-none text-ink placeholder:text-ink-soft/70 focus:outline-none [&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-decoration]:appearance-none"
       />
       {value ? (
         <button
