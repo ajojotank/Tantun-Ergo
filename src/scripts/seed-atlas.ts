@@ -56,6 +56,9 @@ const SEEDS: MiracleSeed[] = [
         attribution: 'Diocese of Sample-See',
       },
     ],
+    // Rick Astley placeholder URL — clearly filler for editors. Replace
+    // with real Eucharistic-miracle content before the content team
+    // onboards. The label/attribution already mark this as a sample.
     videos: [
       {
         url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',

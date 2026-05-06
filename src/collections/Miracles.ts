@@ -91,6 +91,20 @@ export const Miracles: CollectionConfig = {
                     description:
                       'Full URL. YouTube/Vimeo links are converted to privacy-enhanced embeds; direct .mp4/.webm URLs render in a native <video> player.',
                   },
+                  validate: (val: unknown) => {
+                    if (typeof val !== 'string' || val.trim() === '') {
+                      return 'Video URL is required.'
+                    }
+                    try {
+                      const parsed = new URL(val.trim())
+                      if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+                        return 'Video URL must start with http:// or https://'
+                      }
+                      return true
+                    } catch {
+                      return 'Must be a full URL including https://'
+                    }
+                  },
                 },
                 { name: 'label', type: 'text' },
                 { name: 'attribution', type: 'text' },
