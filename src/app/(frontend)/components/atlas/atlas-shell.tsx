@@ -64,6 +64,7 @@ export function AtlasShell({
     new Set(),
   )
   const [yearMax, setYearMax] = useState(MAX_YEAR)
+  const [isOrbiting, setIsOrbiting] = useState(false)
   const [query, setQuery] = useState('')
 
   const visibleMiracles = useMemo(() => {
@@ -92,7 +93,9 @@ export function AtlasShell({
   // Start a slow 360° orbit around the selected miracle once the flyTo
   // settles. Stops on selection change or any user map interaction.
   useEffect(() => {
-    // Always cancel any prior orbit on selection change.
+    // Always cancel any prior orbit on selection change. Stopping fires
+    // onStop which clears `isOrbiting`; no direct setState here (would be a
+    // cascading-render lint violation).
     orbitRef.current?.stop()
     orbitRef.current = null
 
@@ -106,13 +109,19 @@ export function AtlasShell({
         ? desktopMapRef.current
         : mobileMapRef.current
       if (!target) return
-      orbitRef.current = startOrbit(target.getMap())
+      orbitRef.current = startOrbit(target.getMap(), {
+        onStop: () => setIsOrbiting(false),
+      })
+      // setIsOrbiting(true) lives in a timer callback (not the effect body)
+      // so it's safe — fires after a paint.
+      setIsOrbiting(true)
     }, FLY_TO_OPTS.duration + 200)
 
     return () => {
       window.clearTimeout(startTimer)
       orbitRef.current?.stop()
       orbitRef.current = null
+      // setIsOrbiting(false) covered by orbit's onStop on the line above.
     }
   }, [selectedSlug])
 
@@ -149,7 +158,19 @@ export function AtlasShell({
   }
 
   function handleDeselect() {
+    // If rotation is active, the user clicking an empty area of the map is
+    // most likely trying to stop the rotation — not dismiss the drawer.
+    // Stop rotation; keep drawer open. A second click (no rotation now) will
+    // close the drawer.
+    if (orbitRef.current && isOrbiting) {
+      orbitRef.current.stop()
+      return
+    }
     setSelectedSlug(null)
+  }
+
+  function pauseOrbit() {
+    orbitRef.current?.stop()
   }
 
   const searchInput = (
@@ -212,6 +233,7 @@ export function AtlasShell({
             onDeselect={handleDeselect}
             mapRef={mobileMapRef}
           />
+          {isOrbiting ? <PauseOrbitPill onPause={pauseOrbit} /> : null}
         </CollapsibleMap>
         <div className="mx-auto w-full max-w-3xl px-5 py-6 sm:px-8">
           {timelineScrub}
@@ -262,12 +284,27 @@ export function AtlasShell({
               onDeselect={handleDeselect}
               mapRef={desktopMapRef}
             />
+            {isOrbiting ? <PauseOrbitPill onPause={pauseOrbit} /> : null}
           </div>
         </div>
       </div>
 
       <MiracleDrawer miracle={selected} onClose={handleDeselect} />
     </div>
+  )
+}
+
+function PauseOrbitPill({ onPause }: { onPause: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onPause}
+      aria-label="Pause map rotation"
+      className="absolute left-4 top-4 z-10 inline-flex items-center gap-2 rounded-full border border-ink/10 bg-vellum/95 px-4 py-2 font-mono text-[11px] uppercase tracking-[0.22em] text-ink shadow-altar backdrop-blur transition-colors hover:bg-vellum"
+    >
+      <span aria-hidden>⏸</span>
+      Pause rotation
+    </button>
   )
 }
 
@@ -288,7 +325,11 @@ type OrbitHandle = {
 // completes — gives the "360 rotoscope around the cathedral" feel. Stops on
 // any user interaction (drag, wheel, pinch). Returns a handle so the caller
 // can stop manually (e.g. when selection changes).
-function startOrbit(map: MapboxMap, durationMs = 30000): OrbitHandle {
+function startOrbit(
+  map: MapboxMap,
+  options: { durationMs?: number; onStop?: () => void } = {},
+): OrbitHandle {
+  const { durationMs = 60000, onStop } = options
   let active = true
   let rafId = 0
   const startTime = performance.now()
@@ -320,6 +361,7 @@ function startOrbit(map: MapboxMap, durationMs = 30000): OrbitHandle {
     map.off('dragstart', onUserInteract)
     map.off('wheel', onUserInteract)
     map.off('touchstart', onUserInteract)
+    onStop?.()
   }
 
   return { stop }
