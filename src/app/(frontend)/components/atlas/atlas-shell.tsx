@@ -156,6 +156,35 @@ export function AtlasShell({
     }
   }, [selectedSlug])
 
+  // Hover-to-rotate: pan the globe to the hovered card's coordinates without
+  // changing zoom or pitch. Subtle — gives the user a sense of where each
+  // miracle sits while they browse, without committing to the dramatic
+  // selection flyTo. Yields to selection: if anything is currently selected
+  // (and therefore the orbit is or will be running), hover is ignored.
+  // Debounced 250ms so rapidly tabbing/mousing through cards doesn't thrash
+  // the camera; only the last hover within the window actually fires.
+  useEffect(() => {
+    if (selectedSlug) return
+    if (!hoveredSlug) return
+    const m = miracles.find((x) => x.slug === hoveredSlug)
+    if (!m) return
+    const desktopVisible =
+      desktopMapRef.current && isMapVisible(desktopMapRef.current)
+    const target = desktopVisible
+      ? desktopMapRef.current
+      : mobileMapRef.current
+    if (!target) return
+
+    const timer = window.setTimeout(() => {
+      target.easeTo({
+        center: m.coordinates,
+        duration: 800,
+        essential: true,
+      })
+    }, 250)
+    return () => window.clearTimeout(timer)
+  }, [hoveredSlug, selectedSlug, miracles])
+
   function toggleType(t: MiracleType) {
     setSelectedTypes((prev) => {
       const next = new Set(prev)
