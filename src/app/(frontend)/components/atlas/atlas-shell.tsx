@@ -1,12 +1,14 @@
 // src/app/(frontend)/components/atlas/atlas-shell.tsx
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
+import { type MapRef } from 'react-map-gl/mapbox'
 
+import { CollapsibleMap } from './collapsible-map'
 import { FilterChips } from './filter-chips'
 import { Globe } from './globe'
 import { MiracleDrawer } from './miracle-drawer'
-import { MobileControls } from './mobile-controls'
+import { MiracleList } from './miracle-list'
 import { ModeToggle } from './mode-toggle'
 import { TimelineScrub } from './timeline-scrub'
 import {
@@ -16,11 +18,18 @@ import {
 } from './types'
 
 // Fixed year range so the slider always represents the full Christian-era
-// span and doesn't re-clamp when the corpus changes. minYear is rounded to
-// the earliest meaningful century; maxYear tracks the calendar so the
-// slider's right edge stays current as years roll over.
+// span and doesn't re-clamp when the corpus changes.
 const MIN_YEAR = 100
 const MAX_YEAR = new Date().getFullYear()
+
+// Card-click cinematic — fly to coords at zoom 14 + pitch 50 so Mapbox
+// Standard's 3D buildings + landmark cathedrals render at the arrival point.
+const FLY_TO_OPTS = {
+  zoom: 14,
+  pitch: 50,
+  duration: 1500,
+  essential: true,
+} as const
 
 export function AtlasShell({
   miracles,
@@ -31,9 +40,17 @@ export function AtlasShell({
   styleUrl?: string
   initialFocusSlug?: string
 }) {
+  // Two map refs: one for the mobile globe, one for desktop. Both branches
+  // mount their own Mapbox context (the hidden branch stays idle via
+  // display:none) so we forward to whichever ref is currently visible when
+  // handleSelect fires. CSS controls visibility; isMapVisible picks the right
+  // one at click time.
+  const desktopMapRef = useRef<MapRef | null>(null)
+  const mobileMapRef = useRef<MapRef | null>(null)
   const [selectedSlug, setSelectedSlug] = useState<string | null>(
     initialFocusSlug ?? null,
   )
+  const [hoveredSlug, setHoveredSlug] = useState<string | null>(null)
   const [selectedTypes, setSelectedTypes] = useState<Set<MiracleType>>(new Set())
   const [selectedStatuses, setSelectedStatuses] = useState<Set<EcclesialStatus>>(
     new Set(),
@@ -75,7 +92,38 @@ export function AtlasShell({
     })
   }
 
-  const filterCount = selectedTypes.size + selectedStatuses.size
+  function handleSelect(slug: string) {
+    setSelectedSlug(slug)
+    const m = miracles.find((x) => x.slug === slug)
+    if (!m) return
+    // Fly the visible map. Try desktop first (most users), fall back to mobile.
+    const target =
+      desktopMapRef.current && isMapVisible(desktopMapRef.current)
+        ? desktopMapRef.current
+        : mobileMapRef.current
+    target?.flyTo({ center: m.coordinates, ...FLY_TO_OPTS })
+  }
+
+  function handleDeselect() {
+    setSelectedSlug(null)
+  }
+
+  const filtersAndTimeline = (
+    <div className="flex flex-col gap-3">
+      <FilterChips
+        selectedTypes={selectedTypes}
+        onToggleType={toggleType}
+        selectedStatuses={selectedStatuses}
+        onToggleStatus={toggleStatus}
+      />
+      <TimelineScrub
+        min={MIN_YEAR}
+        max={MAX_YEAR}
+        value={yearMax}
+        onChange={setYearMax}
+      />
+    </div>
+  )
 
   return (
     <div className="relative">
@@ -89,71 +137,82 @@ export function AtlasShell({
           </h1>
           <p className="mt-4 max-w-[55ch] text-base leading-relaxed text-ink-soft md:text-lg">
             A globe of approved miracles, anchored to coordinates and centuries.
-            Wander the whole record, or walk a curated pilgrimage.
+            Hover a card to find its pin; click to fly closer and see the
+            buildings rise.
           </p>
         </div>
         <ModeToggle />
       </header>
 
-      {/* Globe — full-bleed on every breakpoint. Desktop overlays filter chips
-          + timeline at the bottom; mobile delegates to floating MobileControls. */}
-      <div className="relative h-[78dvh] w-full overflow-hidden border-y border-ink/10 bg-ink">
-        <Globe
-          miracles={visibleMiracles}
-          styleUrl={styleUrl}
-          onSelect={setSelectedSlug}
-          onDeselect={() => setSelectedSlug(null)}
-        />
-
-        {/* Desktop overlay (hidden on mobile) */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 hidden flex-col gap-3 p-4 md:flex">
-          <div className="pointer-events-auto mx-auto w-full max-w-5xl">
-            <FilterChips
-              selectedTypes={selectedTypes}
-              onToggleType={toggleType}
-              selectedStatuses={selectedStatuses}
-              onToggleStatus={toggleStatus}
-            />
-          </div>
-          <div className="pointer-events-auto mx-auto w-full max-w-5xl">
-            <TimelineScrub
-              min={MIN_YEAR}
-              max={MAX_YEAR}
-              value={yearMax}
-              onChange={setYearMax}
-            />
-          </div>
-        </div>
-
-        {/* Mobile floating controls (hidden on desktop) */}
-        <div className="md:hidden">
-          <MobileControls
-            filterCount={filterCount}
-            filterPanel={
-              <FilterChips
-                selectedTypes={selectedTypes}
-                onToggleType={toggleType}
-                selectedStatuses={selectedStatuses}
-                onToggleStatus={toggleStatus}
-              />
-            }
-            yearLabel={`≤ ${yearMax}`}
-            yearPanel={
-              <TimelineScrub
-                min={MIN_YEAR}
-                max={MAX_YEAR}
-                value={yearMax}
-                onChange={setYearMax}
-              />
-            }
+      {/* Mobile: collapsible map at top + cards below */}
+      <div className="md:hidden">
+        <CollapsibleMap>
+          <Globe
+            miracles={visibleMiracles}
+            styleUrl={styleUrl}
+            hoveredSlug={hoveredSlug}
+            onHover={setHoveredSlug}
+            onSelect={handleSelect}
+            onDeselect={handleDeselect}
+            mapRef={mobileMapRef}
+          />
+        </CollapsibleMap>
+        <div className="mx-auto w-full max-w-3xl px-5 py-6 sm:px-8">
+          {filtersAndTimeline}
+          <p className="mt-6 font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
+            {visibleMiracles.length} of {miracles.length} miracles
+          </p>
+          <MiracleList
+            miracles={visibleMiracles}
+            selectedSlug={selectedSlug}
+            hoveredSlug={hoveredSlug}
+            onSelect={handleSelect}
+            onHover={setHoveredSlug}
+            className="mt-3"
           />
         </div>
       </div>
 
-      <MiracleDrawer
-        miracle={selected}
-        onClose={() => setSelectedSlug(null)}
-      />
+      {/* Desktop: list left + sticky 3D globe right */}
+      <div className="hidden md:block">
+        <div className="mx-auto grid w-full max-w-[1600px] grid-cols-[minmax(0,1fr)_minmax(0,55%)] border-y border-ink/10">
+          <div className="flex flex-col gap-6 px-6 py-8 lg:px-10">
+            {filtersAndTimeline}
+            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
+              {visibleMiracles.length} of {miracles.length} miracles
+            </p>
+            <MiracleList
+              miracles={visibleMiracles}
+              selectedSlug={selectedSlug}
+              hoveredSlug={hoveredSlug}
+              onSelect={handleSelect}
+              onHover={setHoveredSlug}
+            />
+          </div>
+          <div className="relative">
+            <div className="sticky top-0 h-[100dvh] bg-ink">
+              <Globe
+                miracles={visibleMiracles}
+                styleUrl={styleUrl}
+                hoveredSlug={hoveredSlug}
+                onHover={setHoveredSlug}
+                onSelect={handleSelect}
+                onDeselect={handleDeselect}
+                mapRef={desktopMapRef}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <MiracleDrawer miracle={selected} onClose={handleDeselect} />
     </div>
   )
+}
+
+// Crude visibility check — if the map's container has display:none, getMap()
+// still returns the instance but its container's offsetParent is null.
+function isMapVisible(mapRef: MapRef): boolean {
+  const container = mapRef.getMap().getContainer()
+  return container.offsetParent !== null
 }
