@@ -8,7 +8,6 @@ import { CollapsibleMap } from './collapsible-map'
 import { FilterChips } from './filter-chips'
 import { Globe } from './globe'
 import { MiracleDetail } from './miracle-detail'
-import { MiracleDrawer } from './miracle-drawer'
 import { MiracleList } from './miracle-list'
 import { ModeToggle } from './mode-toggle'
 import { SearchInput } from './search-input'
@@ -38,25 +37,22 @@ const FLY_TO_OPTS = {
   essential: true,
 } as const
 
-// Padding shifts the camera's centre INWARD from each edge. We use it for two
-// distinct reasons:
-//
-//  1. Drawer offset — `right: 440` (desktop) / `bottom: 320` (mobile) keeps
-//     the pin in the visible portion of the map, NOT under the drawer.
-//
-//  2. Pitched-camera headroom — at pitch 60 the 3D building extrudes UP from
-//     the pin's screen position. Without `top` padding, the cathedral's top
-//     half clips off the screen. `top: 120` (desktop) / `60` (mobile) puts
-//     the pin lower on screen so the building has room to extend above it.
-const DRAWER_PADDING_DESKTOP = {
+// Padding shifts the camera's centre INWARD from each edge. With v3's
+// card-replaces-list architecture, the map column is never covered by an
+// overlay — the only reason we still need padding is the pitched camera:
+// at pitch 60 the 3D building extrudes UP from the pin's screen position,
+// so without `top` padding the cathedral's top half clips off-screen.
+// `top: 120` (desktop) / `60` (mobile) puts the pin lower on screen so the
+// building has room to extend above it.
+const MAP_PADDING_DESKTOP = {
   top: 120,
   bottom: 0,
   left: 0,
-  right: 440,
+  right: 0,
 } as const
-const DRAWER_PADDING_MOBILE = {
+const MAP_PADDING_MOBILE = {
   top: 60,
-  bottom: 320,
+  bottom: 0,
   left: 0,
   right: 0,
 } as const
@@ -176,7 +172,7 @@ export function AtlasShell({
     target?.flyTo({
       center: m.coordinates,
       ...FLY_TO_OPTS,
-      padding: desktop ? DRAWER_PADDING_DESKTOP : DRAWER_PADDING_MOBILE,
+      padding: desktop ? MAP_PADDING_DESKTOP : MAP_PADDING_MOBILE,
     })
   }
 
@@ -384,12 +380,6 @@ export function AtlasShell({
         </div>
       </div>
 
-      <MiracleDrawer
-        miracle={selected}
-        onClose={handleDeselect}
-        isOrbiting={isOrbiting}
-        onTogglePlayPause={togglePlayPause}
-      />
     </div>
   )
 }
