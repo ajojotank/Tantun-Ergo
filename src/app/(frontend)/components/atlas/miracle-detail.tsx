@@ -11,6 +11,7 @@ import {
   TYPE_LABEL,
   formatYear,
 } from './types'
+import { VideoEmbed } from './video-embed'
 
 /**
  * In-column miracle detail view. Replaces the list inside the left column
@@ -147,6 +148,14 @@ export function MiracleDetail({
                   </figcaption>
                 ) : null}
               </figure>
+            ))}
+          </div>
+        ) : null}
+
+        {miracle.videos.length > 0 ? (
+          <div className="flex flex-col gap-4">
+            {miracle.videos.map((v, i) => (
+              <VideoEmbed key={i} video={v} />
             ))}
           </div>
         ) : null}
