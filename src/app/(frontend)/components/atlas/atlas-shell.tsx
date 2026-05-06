@@ -239,28 +239,25 @@ export function AtlasShell({
   )
 
   return (
-    <div className="relative">
-      <header className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-5 py-12 sm:px-8 md:flex-row md:items-end md:justify-between md:py-16">
+    <div className="relative md:flex md:h-full md:flex-col">
+      {/* MOBILE hero — full-width, at top of page. Hidden on desktop. */}
+      <header className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-5 py-12 sm:px-8 md:hidden">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-rubric">
             Plate I · Cartography
           </p>
-          <h1 className="mt-3 font-display text-5xl italic leading-tight tracking-tight text-ink md:text-7xl">
+          <h1 className="mt-3 font-display text-5xl italic leading-tight tracking-tight text-ink">
             The Miracle Atlas
           </h1>
-          <p className="mt-4 max-w-[55ch] text-base leading-relaxed text-ink-soft md:text-lg">
+          <p className="mt-4 max-w-[55ch] text-base leading-relaxed text-ink-soft">
             A globe of approved miracles, anchored to coordinates and centuries.
-            Hover a card to find its pin; click to fly closer and see the
-            buildings rise.
+            Wander the whole record, or walk a curated pilgrimage.
           </p>
         </div>
         <ModeToggle />
       </header>
 
-      {/* Mobile: chips → collapsible map → timeline → cards.
-          Chips sit ABOVE the map so they stay reachable when the map is
-          expanded (filtering is the more frequent action). Timeline stays
-          below — set once and rarely revisited. */}
+      {/* Mobile: chips → collapsible map → timeline → cards. */}
       <div className="md:hidden">
         <div className="mx-auto flex w-full max-w-3xl flex-col gap-3 px-5 pt-2 pb-4 sm:px-8">
           {searchInput}
@@ -293,30 +290,56 @@ export function AtlasShell({
         </div>
       </div>
 
-      {/* Desktop: list left + sticky 3D globe right.
-          Both columns are sticky-positioned at 100dvh — the list scrolls inside
-          its column, the map fills its column. Page can still scroll past the
-          hero; once the work area is at top, internal scroll takes over. */}
-      <div className="hidden md:block">
-        <div className="mx-auto grid w-full max-w-[1600px] grid-cols-[minmax(0,1fr)_minmax(0,55%)] border-y border-ink/10">
-          <div className="sticky top-0 flex h-[100dvh] flex-col gap-6 overflow-y-auto px-6 py-8 lg:px-10">
-            <div className="flex flex-col gap-3">
+      {/* DESKTOP: 2-column work area. Left col is the single scroll container
+          (hero + sticky filters + list). Right col is the fixed-height globe.
+          Body has overflow:hidden on md+ via the main wrapper, so this is the
+          only place scroll can happen on desktop. */}
+      <div className="hidden md:flex md:flex-1 md:overflow-hidden">
+        <div className="mx-auto grid h-full w-full max-w-[1600px] grid-cols-[minmax(0,1fr)_minmax(0,55%)] overflow-hidden border-y border-ink/10">
+          {/* LEFT: single scroll container */}
+          <div className="atlas-scroll relative h-full overflow-y-auto overscroll-y-contain">
+            {/* Hero — scrolls with the column on first interaction. */}
+            <header className="flex flex-col gap-4 px-6 py-10 lg:px-10 lg:py-14">
+              <div>
+                <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-rubric">
+                  Plate I · Cartography
+                </p>
+                <h1 className="mt-3 font-display text-5xl italic leading-tight tracking-tight text-ink lg:text-6xl xl:text-7xl">
+                  The Miracle Atlas
+                </h1>
+                <p className="mt-4 max-w-[55ch] text-base leading-relaxed text-ink-soft lg:text-lg">
+                  A globe of approved miracles, anchored to coordinates and
+                  centuries. Wander the whole record, or walk a curated
+                  pilgrimage.
+                </p>
+              </div>
+              <ModeToggle />
+            </header>
+
+            {/* Sticky filter bar — pins to the top of the column so filters stay
+                reachable while the list scrolls. */}
+            <div className="sticky top-0 z-10 flex flex-col gap-3 border-b border-ink/10 bg-vellum/95 px-6 py-4 backdrop-blur lg:px-10">
               {searchInput}
               {filterChips}
               {timelineScrub}
             </div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-              {visibleMiracles.length} of {miracles.length} miracles
-            </p>
-            <MiracleList
-              miracles={visibleMiracles}
-              selectedSlug={selectedSlug}
-              hoveredSlug={hoveredSlug}
-              onSelect={handleSelect}
-              onHover={setHoveredSlug}
-            />
+
+            <div className="flex flex-col gap-4 px-6 py-6 lg:px-10">
+              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
+                {visibleMiracles.length} of {miracles.length} miracles
+              </p>
+              <MiracleList
+                miracles={visibleMiracles}
+                selectedSlug={selectedSlug}
+                hoveredSlug={hoveredSlug}
+                onSelect={handleSelect}
+                onHover={setHoveredSlug}
+              />
+            </div>
           </div>
-          <div className="sticky top-0 h-[100dvh] bg-ink">
+
+          {/* RIGHT: fixed-height globe. Doesn't scroll. */}
+          <div className="h-full bg-ink">
             <Globe
               miracles={visibleMiracles}
               styleUrl={styleUrl}
@@ -326,7 +349,7 @@ export function AtlasShell({
               onDeselect={handleDeselect}
               mapRef={desktopMapRef}
             />
-            </div>
+          </div>
         </div>
       </div>
 

@@ -90,7 +90,7 @@ export function MiracleDrawer({
             aria-modal="false"
             aria-labelledby="miracle-drawer-title"
             className={cn(
-              'fixed z-40 overflow-y-auto overscroll-contain bg-vellum text-ink shadow-altar',
+              'atlas-scroll fixed z-40 overflow-y-auto overscroll-contain bg-vellum text-ink shadow-altar',
               // Bottom-sheet (mobile) / right-aside (md+).
               // On md+, `inset-y-0` sets top:0 AND bottom:0 — that's what gives the
               // drawer a hard viewport height so overflow-y-auto can engage. Don't add
@@ -182,7 +182,7 @@ function DrawerBody({
       <p className="text-base leading-relaxed text-ink-soft">{miracle.summary}</p>
 
       {miracle.artwork.length > 0 ? (
-        <div className="-mx-6 flex snap-x snap-proximity gap-3 overflow-x-auto overflow-y-hidden px-6 sm:-mx-8 sm:px-8">
+        <div className="atlas-scroll -mx-6 flex snap-x snap-proximity gap-3 overflow-x-auto overflow-y-hidden px-6 sm:-mx-8 sm:px-8">
           {miracle.artwork.map((art) => (
             <figure
               key={art.id}
