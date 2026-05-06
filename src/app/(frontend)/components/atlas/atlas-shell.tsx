@@ -297,7 +297,7 @@ export function AtlasShell({
       <div className="hidden md:flex md:flex-1 md:overflow-hidden">
         <div className="mx-auto grid h-full w-full max-w-[1600px] grid-cols-[minmax(0,1fr)_minmax(0,55%)] overflow-hidden border-y border-ink/10">
           {/* LEFT: single scroll container */}
-          <div className="atlas-scroll relative h-full overflow-y-auto overscroll-y-contain">
+          <div className="atlas-scroll relative h-full overflow-y-auto overscroll-y-none">
             {/* Hero — scrolls with the column on first interaction. */}
             <header className="flex flex-col gap-4 px-6 py-10 lg:px-10 lg:py-14">
               <div>
