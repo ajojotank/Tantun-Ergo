@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Cormorant_Garamond, Geist, Geist_Mono } from 'next/font/google'
 
 import { ScrollRubric } from './components/scroll-rubric'
+import { SiteChromeHide } from './components/site-chrome-hide'
 import { SiteFooter } from './components/site-footer'
 import { SiteHeader } from './components/site-header'
 import { payload } from '@/lib/payload'
@@ -65,7 +66,9 @@ export default function FrontendRootLayout({
         <ScrollRubric />
         <SiteHeader />
         {children}
-        <SiteFooter />
+        <SiteChromeHide>
+          <SiteFooter />
+        </SiteChromeHide>
       </body>
     </html>
   )

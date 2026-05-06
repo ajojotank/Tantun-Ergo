@@ -16,9 +16,14 @@ const NAV = [
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false)
+  const pathname = usePathname()
+  // Atlas explore + list pages are full-bleed work surfaces (locked viewport,
+  // no chrome). Hide the header entirely on those routes. Pilgrimage pages
+  // keep chrome — they're long-scroll editorial.
+  if (pathname === '/atlas' || pathname === '/atlas/list') return null
   // Only the home page renders a full-bleed dark hero; the header floats over
   // it. Every other page is on vellum, so the header sits in normal flow.
-  const overDark = usePathname() === '/'
+  const overDark = pathname === '/'
   const positioning = overDark
     ? 'absolute inset-x-0 top-0 z-20'
     : 'relative'
