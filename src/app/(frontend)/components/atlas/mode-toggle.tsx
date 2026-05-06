@@ -24,7 +24,7 @@ export function ModeToggle({ className }: { className?: string }) {
     <nav
       aria-label="Atlas mode"
       className={cn(
-        'flex items-center gap-px rounded-full border border-ink/10 bg-vellum/85 p-0.5 backdrop-blur',
+        'flex w-full max-w-[280px] items-center gap-px rounded-full border border-ink/10 bg-vellum/85 p-0.5 backdrop-blur',
         className,
       )}
     >

@@ -36,6 +36,7 @@ export function MobileFilterPanel({
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
+        aria-controls="mobile-filter-panel-body"
         className="flex w-full items-center justify-between px-5 py-3 text-left sm:px-8"
       >
         <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-ink-soft">
@@ -47,9 +48,15 @@ export function MobileFilterPanel({
       </button>
 
       <motion.div
+        id="mobile-filter-panel-body"
         initial={false}
         animate={{ height: open ? 'auto' : 0, opacity: open ? 1 : 0 }}
         transition={{ type: 'spring', stiffness: 220, damping: 30, mass: 0.6 }}
+        // `inert` removes the panel from tab order, AT, and pointer events
+        // when collapsed — so the search input + chips + slider inside don't
+        // remain reachable while invisible. React 19 supports `inert` as a
+        // boolean prop directly.
+        inert={!open}
         className="overflow-hidden"
       >
         <div className="flex flex-col gap-3 px-5 pb-4 sm:px-8">{children}</div>

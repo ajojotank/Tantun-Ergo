@@ -105,9 +105,11 @@ export function AtlasShell({
     })
   }, [miracles, yearMax, selectedTypes, selectedStatuses, query])
 
-  // Count of "active" filter dimensions for the mobile collapsed-panel
-  // header label. A non-empty search, any selected chips, or a year scrub
-  // pulled back from MAX_YEAR each count as one active filter.
+  // Count of currently-active filter chips for the mobile collapsed-panel
+  // header label. Sums: 1 if the search query is non-empty, +1 per selected
+  // type chip, +1 per selected status chip, +1 if the year scrub is pulled
+  // back from MAX_YEAR. Per-chip counting (not per-group) so users can see
+  // at a glance how many specific filters are active.
   const activeFilterCount =
     (query.trim().length > 0 ? 1 : 0) +
     selectedTypes.size +
