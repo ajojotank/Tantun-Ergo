@@ -59,9 +59,12 @@ export function MiracleDrawer({
     return () => {
       window.clearTimeout(focusTimer)
       window.removeEventListener('keydown', onKey)
-      if (isMobileViewport) {
-        document.body.style.overflow = prevBodyOverflow
-      }
+      // Always restore prevBodyOverflow on cleanup. If the lock branch above
+      // didn't fire (desktop), prevBodyOverflow already equals the live body
+      // value — the assignment is a harmless no-op. If it did fire AND the
+      // viewport later resized across the breakpoint while the drawer was
+      // open, this still correctly restores the pre-lock state.
+      document.body.style.overflow = prevBodyOverflow
       previouslyFocused?.focus?.()
     }
   }, [miracle, onClose])
