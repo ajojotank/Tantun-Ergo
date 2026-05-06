@@ -108,21 +108,22 @@ export function AtlasShell({
     setSelectedSlug(null)
   }
 
-  const filtersAndTimeline = (
-    <div className="flex flex-col gap-3">
-      <FilterChips
-        selectedTypes={selectedTypes}
-        onToggleType={toggleType}
-        selectedStatuses={selectedStatuses}
-        onToggleStatus={toggleStatus}
-      />
-      <TimelineScrub
-        min={MIN_YEAR}
-        max={MAX_YEAR}
-        value={yearMax}
-        onChange={setYearMax}
-      />
-    </div>
+  const filterChips = (
+    <FilterChips
+      selectedTypes={selectedTypes}
+      onToggleType={toggleType}
+      selectedStatuses={selectedStatuses}
+      onToggleStatus={toggleStatus}
+    />
+  )
+
+  const timelineScrub = (
+    <TimelineScrub
+      min={MIN_YEAR}
+      max={MAX_YEAR}
+      value={yearMax}
+      onChange={setYearMax}
+    />
   )
 
   return (
@@ -144,8 +145,14 @@ export function AtlasShell({
         <ModeToggle />
       </header>
 
-      {/* Mobile: collapsible map at top + cards below */}
+      {/* Mobile: chips → collapsible map → timeline → cards.
+          Chips sit ABOVE the map so they stay reachable when the map is
+          expanded (filtering is the more frequent action). Timeline stays
+          below — set once and rarely revisited. */}
       <div className="md:hidden">
+        <div className="mx-auto w-full max-w-3xl px-5 pt-2 pb-4 sm:px-8">
+          {filterChips}
+        </div>
         <CollapsibleMap>
           <Globe
             miracles={visibleMiracles}
@@ -158,7 +165,7 @@ export function AtlasShell({
           />
         </CollapsibleMap>
         <div className="mx-auto w-full max-w-3xl px-5 py-6 sm:px-8">
-          {filtersAndTimeline}
+          {timelineScrub}
           <p className="mt-6 font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
             {visibleMiracles.length} of {miracles.length} miracles
           </p>
@@ -177,7 +184,10 @@ export function AtlasShell({
       <div className="hidden md:block">
         <div className="mx-auto grid w-full max-w-[1600px] grid-cols-[minmax(0,1fr)_minmax(0,55%)] border-y border-ink/10">
           <div className="flex flex-col gap-6 px-6 py-8 lg:px-10">
-            {filtersAndTimeline}
+            <div className="flex flex-col gap-3">
+              {filterChips}
+              {timelineScrub}
+            </div>
             <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
               {visibleMiracles.length} of {miracles.length} miracles
             </p>

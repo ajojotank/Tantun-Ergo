@@ -94,9 +94,7 @@ export function Globe({
                 data-atlas-marker="true"
                 aria-label={`Open detail for ${m.title}`}
                 onMouseEnter={() => onHover(m.slug)}
-                onMouseLeave={() =>
-                  onHover(hoveredSlug === m.slug ? null : hoveredSlug)
-                }
+                onMouseLeave={() => onHover(null)}
                 className="group relative grid place-items-center"
               >
                 <span
