@@ -1,7 +1,7 @@
 // src/app/(frontend)/components/atlas/atlas-shell.tsx
 'use client'
 
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { type MapRef } from 'react-map-gl/mapbox'
 
 import { CollapsibleMap } from './collapsible-map'
@@ -54,6 +54,7 @@ export function AtlasShell({
   // one at click time.
   const desktopMapRef = useRef<MapRef | null>(null)
   const mobileMapRef = useRef<MapRef | null>(null)
+  const orbitRef = useRef<OrbitHandle | null>(null)
   const [selectedSlug, setSelectedSlug] = useState<string | null>(
     initialFocusSlug ?? null,
   )
@@ -87,6 +88,33 @@ export function AtlasShell({
     () => miracles.find((m) => m.slug === selectedSlug) ?? null,
     [miracles, selectedSlug],
   )
+
+  // Start a slow 360° orbit around the selected miracle once the flyTo
+  // settles. Stops on selection change or any user map interaction.
+  useEffect(() => {
+    // Always cancel any prior orbit on selection change.
+    orbitRef.current?.stop()
+    orbitRef.current = null
+
+    if (!selectedSlug) return
+
+    // Wait until flyTo's animation has settled, then orbit.
+    const startTimer = window.setTimeout(() => {
+      const desktopVisible =
+        desktopMapRef.current && isMapVisible(desktopMapRef.current)
+      const target = desktopVisible
+        ? desktopMapRef.current
+        : mobileMapRef.current
+      if (!target) return
+      orbitRef.current = startOrbit(target.getMap())
+    }, FLY_TO_OPTS.duration + 200)
+
+    return () => {
+      window.clearTimeout(startTimer)
+      orbitRef.current?.stop()
+      orbitRef.current = null
+    }
+  }, [selectedSlug])
 
   function toggleType(t: MiracleType) {
     setSelectedTypes((prev) => {
@@ -247,4 +275,51 @@ export function AtlasShell({
 function isMapVisible(mapRef: MapRef): boolean {
   const container = mapRef.getMap().getContainer()
   return container.offsetParent !== null
+}
+
+type MapboxMap = ReturnType<MapRef['getMap']>
+
+type OrbitHandle = {
+  stop: () => void
+}
+
+// Slowly rotate the map's bearing around the current centre after a flyTo
+// completes — gives the "360 rotoscope around the cathedral" feel. Stops on
+// any user interaction (drag, wheel, pinch). Returns a handle so the caller
+// can stop manually (e.g. when selection changes).
+function startOrbit(map: MapboxMap, durationMs = 30000): OrbitHandle {
+  let active = true
+  let rafId = 0
+  const startTime = performance.now()
+  const initialBearing = map.getBearing()
+
+  function step(now: number) {
+    if (!active) return
+    const elapsed = now - startTime
+    const bearing = (initialBearing + (elapsed / durationMs) * 360) % 360
+    map.setBearing(bearing)
+    rafId = requestAnimationFrame(step)
+  }
+  rafId = requestAnimationFrame(step)
+
+  function onUserInteract() {
+    stop()
+  }
+
+  // Mapbox surfaces drag/zoom/touch via these events. `dragstart` fires for
+  // pan; `wheel`/`touchstart` cover zoom and pinch.
+  map.on('dragstart', onUserInteract)
+  map.on('wheel', onUserInteract)
+  map.on('touchstart', onUserInteract)
+
+  function stop() {
+    if (!active) return
+    active = false
+    cancelAnimationFrame(rafId)
+    map.off('dragstart', onUserInteract)
+    map.off('wheel', onUserInteract)
+    map.off('touchstart', onUserInteract)
+  }
+
+  return { stop }
 }
