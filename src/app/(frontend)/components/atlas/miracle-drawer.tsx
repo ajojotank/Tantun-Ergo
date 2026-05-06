@@ -64,7 +64,7 @@ export function MiracleDrawer({
             aria-modal="false"
             aria-labelledby="miracle-drawer-title"
             className={cn(
-              'fixed z-40 overflow-y-auto bg-vellum text-ink shadow-altar',
+              'fixed z-40 overflow-y-auto overscroll-contain bg-vellum text-ink shadow-altar',
               // Bottom-sheet (mobile) / right-aside (md+)
               'inset-x-0 bottom-0 max-h-[80dvh] rounded-t-3xl border-t border-ink/10',
               'md:inset-y-0 md:left-auto md:right-0 md:bottom-auto md:max-h-none md:w-[440px] md:rounded-none md:border-l md:border-t-0',
@@ -131,17 +131,17 @@ function DrawerBody({
       <p className="text-base leading-relaxed text-ink-soft">{miracle.summary}</p>
 
       {miracle.artwork.length > 0 ? (
-        <div className="-mx-6 flex snap-x snap-mandatory gap-3 overflow-x-auto px-6 sm:-mx-8 sm:px-8">
+        <div className="-mx-6 flex snap-x snap-proximity gap-3 overflow-x-auto overflow-y-hidden px-6 sm:-mx-8 sm:px-8">
           {miracle.artwork.map((art) => (
             <figure
               key={art.id}
-              className="relative aspect-[4/5] min-w-[78%] shrink-0 snap-center overflow-hidden rounded-2xl bg-parchment"
+              className="relative aspect-[16/10] w-full shrink-0 snap-center overflow-hidden rounded-2xl bg-parchment"
             >
               <Image
                 src={art.url}
                 alt={art.alt}
                 fill
-                sizes="(min-width: 768px) 360px, 78vw"
+                sizes="(min-width: 768px) 440px, 100vw"
                 className="object-cover"
                 unoptimized={art.url.startsWith('/api/')}
               />
