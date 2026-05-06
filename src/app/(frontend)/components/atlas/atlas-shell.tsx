@@ -25,11 +25,17 @@ const MAX_YEAR = new Date().getFullYear()
 // Card-click cinematic — fly to coords at zoom 14 + pitch 50 so Mapbox
 // Standard's 3D buildings + landmark cathedrals render at the arrival point.
 const FLY_TO_OPTS = {
-  zoom: 14,
+  zoom: 16, // Standard's 3D buildings + landmark cathedrals appear reliably at 15-17
   pitch: 50,
   duration: 1500,
   essential: true,
 } as const
+
+// Drawer offsets — flyTo's `padding` shifts the visual centre so the pin
+// lands NOT under the drawer. Desktop drawer is 440px on the right; mobile
+// drawer is a bottom-sheet at ~80dvh, so we offset upward.
+const DRAWER_PADDING_DESKTOP = { top: 0, bottom: 0, left: 0, right: 440 } as const
+const DRAWER_PADDING_MOBILE = { top: 0, bottom: 320, left: 0, right: 0 } as const
 
 export function AtlasShell({
   miracles,
@@ -97,11 +103,14 @@ export function AtlasShell({
     const m = miracles.find((x) => x.slug === slug)
     if (!m) return
     // Fly the visible map. Try desktop first (most users), fall back to mobile.
-    const target =
+    const desktop =
       desktopMapRef.current && isMapVisible(desktopMapRef.current)
-        ? desktopMapRef.current
-        : mobileMapRef.current
-    target?.flyTo({ center: m.coordinates, ...FLY_TO_OPTS })
+    const target = desktop ? desktopMapRef.current : mobileMapRef.current
+    target?.flyTo({
+      center: m.coordinates,
+      ...FLY_TO_OPTS,
+      padding: desktop ? DRAWER_PADDING_DESKTOP : DRAWER_PADDING_MOBILE,
+    })
   }
 
   function handleDeselect() {
