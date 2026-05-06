@@ -64,7 +64,9 @@ export default function FrontendRootLayout({
         style={{ position: 'relative' }}
       >
         <ScrollRubric />
-        <SiteHeader />
+        <SiteChromeHide>
+          <SiteHeader />
+        </SiteChromeHide>
         {children}
         <SiteChromeHide>
           <SiteFooter />
