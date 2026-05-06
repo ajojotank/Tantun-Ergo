@@ -92,8 +92,20 @@ function DrawerBody({
   closeButtonRef: RefObject<HTMLButtonElement | null>
 }) {
   return (
-    <div className="flex flex-col gap-6 px-6 py-6 sm:px-8">
-      <header className="flex items-start justify-between gap-4">
+    <div className="relative flex flex-col gap-6 px-6 py-6 sm:px-8">
+      {/* Corner close — conventional × at top-right, focusable + labeled. */}
+      <button
+        ref={closeButtonRef}
+        type="button"
+        onClick={onClose}
+        aria-label="Close detail panel"
+        className="absolute right-4 top-4 z-10 inline-flex size-9 items-center justify-center rounded-full border border-ink/10 bg-vellum/85 text-ink-soft backdrop-blur transition-colors hover:border-ink/30 hover:text-ink"
+      >
+        <span aria-hidden className="text-base leading-none">✕</span>
+      </button>
+
+      {/* Eyebrow + title + meta — own breathing room, no inline close button. */}
+      <div className="space-y-2 pr-12">
         <div className="flex items-center gap-2">
           <span
             aria-hidden
@@ -104,25 +116,13 @@ function DrawerBody({
             {TYPE_LABEL[miracle.type]} · {STATUS_LABEL[miracle.ecclesialStatus]}
           </span>
         </div>
-        <button
-          ref={closeButtonRef}
-          type="button"
-          onClick={onClose}
-          aria-label="Close"
-          className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft transition-colors hover:text-ink"
-        >
-          Close
-        </button>
-      </header>
-
-      <div>
         <h2
           id="miracle-drawer-title"
           className="font-display text-3xl italic leading-tight tracking-tight text-ink md:text-4xl"
         >
           {miracle.title}
         </h2>
-        <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.2em] text-ink-soft">
+        <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-ink-soft">
           {miracle.locationName} · {formatYear(miracle.yearOccurred, miracle.dateApproximate)}
           {miracle.isSample ? ' · [Sample]' : ''}
         </p>
