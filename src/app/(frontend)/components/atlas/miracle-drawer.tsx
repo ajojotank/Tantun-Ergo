@@ -73,9 +73,13 @@ export function MiracleDrawer({
             aria-labelledby="miracle-drawer-title"
             className={cn(
               'fixed z-40 overflow-y-auto overscroll-contain bg-vellum text-ink shadow-altar',
-              // Bottom-sheet (mobile) / right-aside (md+)
+              // Bottom-sheet (mobile) / right-aside (md+).
+              // On md+, `inset-y-0` sets top:0 AND bottom:0 — that's what gives the
+              // drawer a hard viewport height so overflow-y-auto can engage. Don't add
+              // bottom-auto here; it'd let the drawer grow to content height and break
+              // internal scroll on tall content.
               'inset-x-0 bottom-0 max-h-[80dvh] rounded-t-3xl border-t border-ink/10',
-              'md:inset-y-0 md:left-auto md:right-0 md:bottom-auto md:max-h-none md:w-[440px] md:rounded-none md:border-l md:border-t-0',
+              'md:inset-y-0 md:left-auto md:right-0 md:max-h-none md:w-[440px] md:rounded-none md:border-l md:border-t-0',
             )}
             initial={{ y: '100%', opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
