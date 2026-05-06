@@ -60,10 +60,18 @@ const MAP_PADDING_MOBILE = {
 
 // Zoom-out cinematic — used when the user clicks "Back to list" or hovers
 // a different card after viewing a detail. Returns the camera to the globe
-// browse altitude (zoom 2, pitch 0) so the next interaction reads as
-// "looking at the planet" instead of teleporting between buildings.
-const GLOBE_FLY_OPTS = {
-  zoom: 2,
+// browse altitude (pitch 0) so the next interaction reads as "looking at
+// the planet" instead of teleporting between buildings.
+//
+// Two zoom levels because the canvas aspect ratio differs:
+//   - Desktop: tall column (~58% viewport wide × full viewport tall) —
+//     zoom 2 fits a confident hemisphere with continents readable.
+//   - Mobile: short landscape strip (collapsible map at the top, ~h-64)
+//     — at zoom 2 the globe gets cropped on the sides, so we pull out
+//     two levels to zoom 0 (whole earth visible).
+const GLOBE_ZOOM_DESKTOP = 2
+const GLOBE_ZOOM_MOBILE = 0
+const GLOBE_FLY_BASE = {
   pitch: 0,
   duration: 1400,
   essential: true,
@@ -187,7 +195,12 @@ export function AtlasShell({
           : mobileMapRef.current
         // No `center` — keep the user's spatial context (the globe just
         // rotates back / pulls out around whatever pin they were viewing).
-        target?.flyTo({ ...GLOBE_FLY_OPTS })
+        // Mobile pulls further out (zoom 0) than desktop (zoom 2) because
+        // the mobile map's short landscape canvas crops the globe at zoom 2.
+        target?.flyTo({
+          zoom: desktopVisible ? GLOBE_ZOOM_DESKTOP : GLOBE_ZOOM_MOBILE,
+          ...GLOBE_FLY_BASE,
+        })
       }
       return
     }
@@ -254,11 +267,14 @@ export function AtlasShell({
     const timer = window.setTimeout(() => {
       const currentZoom = target.getMap().getZoom()
       if (currentZoom > HOVER_RESET_ZOOM_THRESHOLD) {
+        // Pull back out to the globe browse view, picking the right zoom
+        // for whichever branch is visible (mobile's short canvas needs
+        // more zoom-out than desktop's tall column).
         target.easeTo({
           center: m.coordinates,
-          zoom: GLOBE_FLY_OPTS.zoom,
-          pitch: GLOBE_FLY_OPTS.pitch,
-          duration: GLOBE_FLY_OPTS.duration,
+          zoom: desktopVisible ? GLOBE_ZOOM_DESKTOP : GLOBE_ZOOM_MOBILE,
+          pitch: GLOBE_FLY_BASE.pitch,
+          duration: GLOBE_FLY_BASE.duration,
           essential: true,
         })
       } else {
@@ -400,6 +416,7 @@ export function AtlasShell({
             onSelect={handleSelect}
             onDeselect={handleDeselect}
             mapRef={mobileMapRef}
+            initialZoom={GLOBE_ZOOM_MOBILE}
           />
         </CollapsibleMap>
 

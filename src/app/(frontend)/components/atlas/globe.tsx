@@ -26,6 +26,7 @@ export function Globe({
   onSelect,
   onDeselect,
   mapRef,
+  initialZoom = 2,
   className,
 }: {
   miracles: MiracleSummary[]
@@ -35,6 +36,10 @@ export function Globe({
   onSelect: (slug: string) => void
   onDeselect?: () => void
   mapRef?: RefObject<MapRef | null>
+  /** Initial Mapbox zoom level for the globe. Default 2 (desktop full
+      column). Mobile passes 0 because the collapsible map at the top is
+      short and landscape — at zoom 2 the globe gets cropped. */
+  initialZoom?: number
   className?: string
 }) {
   const hovered = hoveredSlug
@@ -62,7 +67,7 @@ export function Globe({
       <Map
         ref={mapRef}
         mapboxAccessToken={TOKEN}
-        initialViewState={{ longitude: 8, latitude: 30, zoom: 2 }}
+        initialViewState={{ longitude: 8, latitude: 30, zoom: initialZoom }}
         mapStyle={resolveStyleUrl(styleUrl)}
         projection={{ name: 'globe' }}
         style={{ width: '100%', height: '100%' }}
