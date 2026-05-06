@@ -32,6 +32,13 @@ export function MiracleDrawer({
     const focusTimer = window.setTimeout(() => {
       closeButtonRef.current?.focus()
     }, 0)
+
+    // Lock body scroll while the drawer is up. Prevents wheel/touch events
+    // from bleeding through to the page (iOS Safari's overscroll-contain
+    // alone isn't enough). Restore the user's prior overflow on cleanup.
+    const prevBodyOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') onClose()
     }
@@ -39,6 +46,7 @@ export function MiracleDrawer({
     return () => {
       window.clearTimeout(focusTimer)
       window.removeEventListener('keydown', onKey)
+      document.body.style.overflow = prevBodyOverflow
       previouslyFocused?.focus?.()
     }
   }, [miracle, onClose])
