@@ -295,7 +295,7 @@ export function AtlasShell({
           Body has overflow:hidden on md+ via the main wrapper, so this is the
           only place scroll can happen on desktop. */}
       <div className="hidden md:flex md:flex-1 md:overflow-hidden">
-        <div className="mx-auto grid h-full w-full max-w-[1600px] grid-cols-[minmax(0,1fr)_minmax(0,55%)] overflow-hidden border-y border-ink/10">
+        <div className="grid h-full w-full grid-cols-[minmax(380px,42%)_minmax(0,1fr)] overflow-hidden">
           {/* LEFT: single scroll container */}
           <div className="atlas-scroll relative h-full overflow-y-auto overscroll-y-none">
             {/* Hero — scrolls with the column on first interaction. */}
