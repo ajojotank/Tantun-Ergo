@@ -144,6 +144,18 @@ export function AtlasShell({
     }
   }, [selectedSlug])
 
+  // Keep the URL in sync with selection (cheap — no React re-render, no
+  // data refetch). Survives refresh because the server already reads
+  // `?focus=` and forwards it as `initialFocusSlug`. We use replaceState
+  // (not pushState) so multiple selections don't pile up history entries.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const url = selectedSlug ? `/atlas?focus=${selectedSlug}` : '/atlas'
+    if (window.location.pathname + window.location.search !== url) {
+      window.history.replaceState(null, '', url)
+    }
+  }, [selectedSlug])
+
   function toggleType(t: MiracleType) {
     setSelectedTypes((prev) => {
       const next = new Set(prev)
