@@ -24,7 +24,7 @@ export function ModeToggle({ className }: { className?: string }) {
     <nav
       aria-label="Atlas mode"
       className={cn(
-        'inline-flex items-center gap-px rounded-full border border-ink/10 bg-vellum/85 p-0.5 backdrop-blur',
+        'flex items-center gap-px rounded-full border border-ink/10 bg-vellum/85 p-0.5 backdrop-blur',
         className,
       )}
     >
@@ -36,7 +36,7 @@ export function ModeToggle({ className }: { className?: string }) {
             href={href}
             aria-current={active ? 'page' : undefined}
             className={cn(
-              'rounded-full px-4 py-1.5 font-mono text-[11px] uppercase tracking-[0.22em] transition-colors',
+              'flex-1 rounded-full px-4 py-1.5 text-center font-mono text-[11px] uppercase tracking-[0.22em] transition-colors',
               active
                 ? 'bg-ink text-vellum'
                 : 'text-ink-soft hover:text-ink',
