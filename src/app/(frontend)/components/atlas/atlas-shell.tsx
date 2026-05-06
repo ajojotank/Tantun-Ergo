@@ -9,6 +9,7 @@ import { FilterChips } from './filter-chips'
 import { Globe } from './globe'
 import { MiracleDetail } from './miracle-detail'
 import { MiracleList } from './miracle-list'
+import { MobileFilterPanel } from './mobile-filter-panel'
 import { ModeToggle } from './mode-toggle'
 import { SearchInput } from './search-input'
 import { TimelineScrub } from './timeline-scrub'
@@ -103,6 +104,15 @@ export function AtlasShell({
       return true
     })
   }, [miracles, yearMax, selectedTypes, selectedStatuses, query])
+
+  // Count of "active" filter dimensions for the mobile collapsed-panel
+  // header label. A non-empty search, any selected chips, or a year scrub
+  // pulled back from MAX_YEAR each count as one active filter.
+  const activeFilterCount =
+    (query.trim().length > 0 ? 1 : 0) +
+    selectedTypes.size +
+    selectedStatuses.size +
+    (yearMax < MAX_YEAR ? 1 : 0)
 
   const selected = useMemo(
     () => miracles.find((m) => m.slug === selectedSlug) ?? null,
@@ -297,16 +307,11 @@ export function AtlasShell({
         <ModeToggle />
       </header>
 
-      {/* Mobile: chips → collapsible map → timeline → cards. When a card is
-          selected, filter bar and list are replaced by the detail view. The
-          collapsible map at top stays put — same mental model as desktop. */}
+      {/* Mobile: collapsible map at top → collapsible Filters panel → list
+          (or detail when a card is selected). Filters consolidate search +
+          chips + timeline scrub behind a single toggle so the list is closer
+          to the map by default. */}
       <div className="md:hidden">
-        {!selected ? (
-          <div className="mx-auto flex w-full max-w-3xl flex-col gap-3 px-5 pt-2 pb-4 sm:px-8">
-            {searchInput}
-            {filterChips}
-          </div>
-        ) : null}
         <CollapsibleMap onResize={() => mobileMapRef.current?.getMap().resize()}>
           <Globe
             miracles={visibleMiracles}
@@ -318,6 +323,15 @@ export function AtlasShell({
             mapRef={mobileMapRef}
           />
         </CollapsibleMap>
+
+        {!selected ? (
+          <MobileFilterPanel activeCount={activeFilterCount}>
+            {searchInput}
+            {filterChips}
+            {timelineScrub}
+          </MobileFilterPanel>
+        ) : null}
+
         {selected ? (
           <div className="mx-auto w-full max-w-3xl px-5 py-4 sm:px-8">
             <MiracleDetail
@@ -330,8 +344,7 @@ export function AtlasShell({
           </div>
         ) : (
           <div className="mx-auto w-full max-w-3xl px-5 py-6 sm:px-8">
-            {timelineScrub}
-            <p className="mt-6 font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
+            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
               {visibleMiracles.length} of {miracles.length} miracles
             </p>
             <MiracleList
