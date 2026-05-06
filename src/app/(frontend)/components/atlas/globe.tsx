@@ -62,7 +62,7 @@ export function Globe({
       <Map
         ref={mapRef}
         mapboxAccessToken={TOKEN}
-        initialViewState={{ longitude: 8, latitude: 30, zoom: 1.4 }}
+        initialViewState={{ longitude: 8, latitude: 30, zoom: 2 }}
         mapStyle={resolveStyleUrl(styleUrl)}
         projection={{ name: 'globe' }}
         style={{ width: '100%', height: '100%' }}
