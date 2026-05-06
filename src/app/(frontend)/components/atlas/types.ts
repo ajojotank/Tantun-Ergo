@@ -32,6 +32,12 @@ export type MiracleSource = {
   attribution?: string | null
 }
 
+export type MiracleVideo = {
+  url: string
+  label?: string | null
+  attribution?: string | null
+}
+
 export type MiracleSummary = {
   id: string
   slug: string
@@ -48,6 +54,7 @@ export type MiracleSummary = {
   narrative?: unknown // Lexical JSON
   sources: MiracleSource[]
   artwork: MiracleArtwork[]
+  videos: MiracleVideo[]
   isSample: boolean
 }
 

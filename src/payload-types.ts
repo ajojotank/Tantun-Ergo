@@ -329,9 +329,23 @@ export interface Miracle {
       }[]
     | null;
   /**
-   * Reliquary images shown in the drawer carousel.
+   * Reliquary images shown in the detail carousel.
    */
   artwork?: (number | Media)[] | null;
+  /**
+   * Embed videos by pasting a YouTube, Vimeo, or direct MP4 URL. They render inline on the miracle detail view.
+   */
+  videos?:
+    | {
+        /**
+         * Full URL. YouTube/Vimeo links are converted to privacy-enhanced embeds; direct .mp4/.webm URLs render in a native <video> player.
+         */
+        url: string;
+        label?: string | null;
+        attribution?: string | null;
+        id?: string | null;
+      }[]
+    | null;
   type: 'eucharistic' | 'marian' | 'healing' | 'stigmata' | 'incorruptible' | 'other';
   ecclesialStatus: 'approved' | 'recognised' | 'worthy-of-belief' | 'under-investigation' | 'not-constatat';
   /**
@@ -738,6 +752,14 @@ export interface MiraclesSelect<T extends boolean = true> {
         id?: T;
       };
   artwork?: T;
+  videos?:
+    | T
+    | {
+        url?: T;
+        label?: T;
+        attribution?: T;
+        id?: T;
+      };
   type?: T;
   ecclesialStatus?: T;
   locationName?: T;

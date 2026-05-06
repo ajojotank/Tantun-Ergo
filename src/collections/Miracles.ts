@@ -71,8 +71,30 @@ export const Miracles: CollectionConfig = {
               relationTo: 'media',
               hasMany: true,
               admin: {
-                description: 'Reliquary images shown in the drawer carousel.',
+                description: 'Reliquary images shown in the detail carousel.',
               },
+            },
+            {
+              name: 'videos',
+              type: 'array',
+              labels: { singular: 'Video', plural: 'Videos' },
+              admin: {
+                description:
+                  'Embed videos by pasting a YouTube, Vimeo, or direct MP4 URL. They render inline on the miracle detail view.',
+              },
+              fields: [
+                {
+                  name: 'url',
+                  type: 'text',
+                  required: true,
+                  admin: {
+                    description:
+                      'Full URL. YouTube/Vimeo links are converted to privacy-enhanced embeds; direct .mp4/.webm URLs render in a native <video> player.',
+                  },
+                },
+                { name: 'label', type: 'text' },
+                { name: 'attribution', type: 'text' },
+              ],
             },
           ],
         },

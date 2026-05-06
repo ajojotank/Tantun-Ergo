@@ -9,6 +9,7 @@ import {
   type MiracleSource,
   type MiracleSummary,
   type MiracleType,
+  type MiracleVideo,
   type PilgrimageRouteStop,
   type PilgrimageSummary,
 } from './types'
@@ -45,6 +46,21 @@ export function toMiracleSummary(raw: unknown): MiracleSummary {
     })
     .filter((a): a is MiracleArtwork => a !== null)
 
+  const videosRaw = Array.isArray(r.videos) ? r.videos : []
+  const videos: MiracleVideo[] = videosRaw
+    .map((v): MiracleVideo | null => {
+      if (typeof v !== 'object' || v === null) return null
+      const o = v as Record<string, unknown>
+      const url = typeof o.url === 'string' ? o.url.trim() : ''
+      if (!url) return null
+      return {
+        url,
+        label: typeof o.label === 'string' ? o.label : null,
+        attribution: typeof o.attribution === 'string' ? o.attribution : null,
+      }
+    })
+    .filter((v): v is MiracleVideo => v !== null)
+
   return {
     id: String(r.id),
     slug: String(r.slug ?? ''),
@@ -63,6 +79,7 @@ export function toMiracleSummary(raw: unknown): MiracleSummary {
     narrative: r.narrative ?? null,
     sources,
     artwork,
+    videos,
     isSample: Boolean(r._isSample),
   }
 }
