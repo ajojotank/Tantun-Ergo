@@ -10,7 +10,7 @@ import Map, {
   type MapMouseEvent,
   type MapRef,
 } from 'react-map-gl/mapbox'
-import { useRef, useState } from 'react'
+import { type RefObject } from 'react'
 
 import { cn } from '@/lib/cn'
 import { applyDuskPreset, resolveStyleUrl } from './mapbox-style'
@@ -21,18 +21,22 @@ const TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
 export function Globe({
   miracles,
   styleUrl,
+  hoveredSlug,
+  onHover,
   onSelect,
   onDeselect,
+  mapRef,
   className,
 }: {
   miracles: MiracleSummary[]
   styleUrl?: string
+  hoveredSlug: string | null
+  onHover: (slug: string | null) => void
   onSelect: (slug: string) => void
   onDeselect?: () => void
+  mapRef?: RefObject<MapRef | null>
   className?: string
 }) {
-  const mapRef = useRef<MapRef | null>(null)
-  const [hoveredSlug, setHoveredSlug] = useState<string | null>(null)
   const hovered = hoveredSlug
     ? miracles.find((m) => m.slug === hoveredSlug) ?? null
     : null
@@ -63,53 +67,58 @@ export function Globe({
         projection={{ name: 'globe' }}
         style={{ width: '100%', height: '100%' }}
         attributionControl={false}
-        onLoad={() => applyDuskPreset(mapRef.current)}
+        onLoad={() => applyDuskPreset(mapRef?.current ?? null)}
         onClick={(e: MapMouseEvent) => {
-          // The Map fires onClick when no Marker handler intercepts. Use it
-          // to deselect — but only if the parent provided onDeselect.
           const target = (e.originalEvent?.target as HTMLElement | null) ?? null
-          // Defensive: if a Marker child fired this, target.closest finds
-          // the Marker root and we ignore. Otherwise deselect.
           if (target?.closest('[data-atlas-marker="true"]')) return
           onDeselect?.()
         }}
       >
         <AttributionControl compact position="bottom-left" />
         <NavigationControl position="bottom-right" showCompass={false} />
-        {miracles.map((m) => (
-          <Marker
-            key={m.id}
-            longitude={m.coordinates[0]}
-            latitude={m.coordinates[1]}
-            anchor="center"
-            onClick={(e) => {
-              e.originalEvent.stopPropagation()
-              onSelect(m.slug)
-            }}
-          >
-            <button
-              type="button"
-              data-atlas-marker="true"
-              aria-label={`Open detail for ${m.title}`}
-              onMouseEnter={() => setHoveredSlug(m.slug)}
-              onMouseLeave={() =>
-                setHoveredSlug((cur) => (cur === m.slug ? null : cur))
-              }
-              className="group relative grid place-items-center"
+        {miracles.map((m) => {
+          const isHighlighted = m.slug === hoveredSlug
+          return (
+            <Marker
+              key={m.id}
+              longitude={m.coordinates[0]}
+              latitude={m.coordinates[1]}
+              anchor="center"
+              onClick={(e) => {
+                e.originalEvent.stopPropagation()
+                onSelect(m.slug)
+              }}
             >
-              <span
-                aria-hidden
-                className="absolute size-5 rounded-full opacity-40 blur-md transition-opacity group-hover:opacity-90"
-                style={{ backgroundColor: PIN_HEX[m.type] }}
-              />
-              <span
-                aria-hidden
-                className="relative size-2.5 rounded-full ring-2 ring-vellum/85 transition-transform group-hover:scale-125"
-                style={{ backgroundColor: PIN_HEX[m.type] }}
-              />
-            </button>
-          </Marker>
-        ))}
+              <button
+                type="button"
+                data-atlas-marker="true"
+                aria-label={`Open detail for ${m.title}`}
+                onMouseEnter={() => onHover(m.slug)}
+                onMouseLeave={() =>
+                  onHover(hoveredSlug === m.slug ? null : hoveredSlug)
+                }
+                className="group relative grid place-items-center"
+              >
+                <span
+                  aria-hidden
+                  className={cn(
+                    'absolute size-5 rounded-full blur-md transition-opacity',
+                    isHighlighted ? 'opacity-90' : 'opacity-40 group-hover:opacity-90',
+                  )}
+                  style={{ backgroundColor: PIN_HEX[m.type] }}
+                />
+                <span
+                  aria-hidden
+                  className={cn(
+                    'relative size-2.5 rounded-full ring-2 ring-vellum/85 transition-transform',
+                    isHighlighted ? 'scale-150' : 'group-hover:scale-125',
+                  )}
+                  style={{ backgroundColor: PIN_HEX[m.type] }}
+                />
+              </button>
+            </Marker>
+          )
+        })}
         {hovered ? (
           <Popup
             longitude={hovered.coordinates[0]}
