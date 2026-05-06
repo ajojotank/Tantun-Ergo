@@ -60,13 +60,15 @@ export default function FrontendRootLayout({
       suppressHydrationWarning
     >
       <body
-        className="min-h-[100dvh] bg-vellum text-ink selection:bg-rubric/20 selection:text-rubric"
+        className="flex min-h-[100dvh] flex-col bg-vellum text-ink selection:bg-rubric/20 selection:text-rubric"
         style={{ position: 'relative' }}
       >
         <ScrollRubric />
-        <SiteChromeHide>
-          <SiteHeader />
-        </SiteChromeHide>
+        {/* Header is shown on every route — users need it for nav. The
+            full-bleed feel of /atlas is preserved by hiding the FOOTER (via
+            SiteChromeHide below) and by sizing <main> to fill exactly the
+            remaining viewport (`flex-1 min-h-0` on /atlas + walker mains). */}
+        <SiteHeader />
         {children}
         <SiteChromeHide>
           <SiteFooter />
