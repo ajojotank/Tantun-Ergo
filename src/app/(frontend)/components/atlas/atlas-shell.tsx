@@ -178,6 +178,27 @@ export function AtlasShell({
     orbitRef.current?.stop()
   }
 
+  function playOrbit() {
+    if (!selectedSlug || isOrbiting) return
+    const m = miracles.find((x) => x.slug === selectedSlug)
+    if (!m) return
+    const desktopVisible =
+      desktopMapRef.current && isMapVisible(desktopMapRef.current)
+    const target = desktopVisible
+      ? desktopMapRef.current
+      : mobileMapRef.current
+    if (!target) return
+    setIsOrbiting(true)
+    orbitRef.current = startOrbit(target.getMap(), {
+      onStop: () => setIsOrbiting(false),
+    })
+  }
+
+  function togglePlayPause() {
+    if (isOrbiting) pauseOrbit()
+    else playOrbit()
+  }
+
   const searchInput = (
     <SearchInput value={query} onChange={setQuery} />
   )
@@ -238,7 +259,6 @@ export function AtlasShell({
             onDeselect={handleDeselect}
             mapRef={mobileMapRef}
           />
-          {isOrbiting ? <PauseOrbitPill onPause={pauseOrbit} /> : null}
         </CollapsibleMap>
         <div className="mx-auto w-full max-w-3xl px-5 py-6 sm:px-8">
           {timelineScrub}
@@ -289,27 +309,17 @@ export function AtlasShell({
               onDeselect={handleDeselect}
               mapRef={desktopMapRef}
             />
-            {isOrbiting ? <PauseOrbitPill onPause={pauseOrbit} /> : null}
-          </div>
+            </div>
         </div>
       </div>
 
-      <MiracleDrawer miracle={selected} onClose={handleDeselect} />
+      <MiracleDrawer
+        miracle={selected}
+        onClose={handleDeselect}
+        isOrbiting={isOrbiting}
+        onTogglePlayPause={togglePlayPause}
+      />
     </div>
-  )
-}
-
-function PauseOrbitPill({ onPause }: { onPause: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onPause}
-      aria-label="Pause map rotation"
-      className="absolute left-4 top-4 z-10 inline-flex items-center gap-2 rounded-full border border-ink/10 bg-vellum/95 px-4 py-2 font-mono text-[11px] uppercase tracking-[0.22em] text-ink shadow-altar backdrop-blur transition-colors hover:bg-vellum"
-    >
-      <span aria-hidden>⏸</span>
-      Pause rotation
-    </button>
   )
 }
 

@@ -19,9 +19,15 @@ const SPRING = { type: 'spring', stiffness: 220, damping: 30, mass: 0.7 } as con
 export function MiracleDrawer({
   miracle,
   onClose,
+  isOrbiting = false,
+  onTogglePlayPause,
 }: {
   miracle: MiracleSummary | null
   onClose: () => void
+  /** True if the map is currently auto-rotating around the selected pin. */
+  isOrbiting?: boolean
+  /** Toggle handler — pauses if orbiting, resumes if paused. */
+  onTogglePlayPause?: () => void
 }) {
   const closeButtonRef = useRef<HTMLButtonElement | null>(null)
 
@@ -95,7 +101,13 @@ export function MiracleDrawer({
             exit={{ y: '100%', opacity: 0 }}
             transition={SPRING}
           >
-            <DrawerBody miracle={miracle} onClose={onClose} closeButtonRef={closeButtonRef} />
+            <DrawerBody
+              miracle={miracle}
+              onClose={onClose}
+              closeButtonRef={closeButtonRef}
+              isOrbiting={isOrbiting}
+              onTogglePlayPause={onTogglePlayPause}
+            />
           </motion.aside>
         </>
       ) : null}
@@ -107,10 +119,14 @@ function DrawerBody({
   miracle,
   onClose,
   closeButtonRef,
+  isOrbiting,
+  onTogglePlayPause,
 }: {
   miracle: MiracleSummary
   onClose: () => void
   closeButtonRef: RefObject<HTMLButtonElement | null>
+  isOrbiting: boolean
+  onTogglePlayPause?: () => void
 }) {
   return (
     <div className="relative flex flex-col gap-6 px-6 py-6 sm:px-8">
@@ -147,6 +163,17 @@ function DrawerBody({
           {miracle.locationName} · {formatYear(miracle.yearOccurred, miracle.dateApproximate)}
           {miracle.isSample ? ' · [Sample]' : ''}
         </p>
+        {onTogglePlayPause ? (
+          <button
+            type="button"
+            onClick={onTogglePlayPause}
+            aria-pressed={isOrbiting}
+            className="mt-2 inline-flex items-center gap-2 self-start rounded-full border border-ink/15 bg-vellum/85 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft transition-colors hover:border-ink/30 hover:text-ink"
+          >
+            <span aria-hidden>{isOrbiting ? '⏸' : '▶'}</span>
+            {isOrbiting ? 'Pause rotation' : 'Resume rotation'}
+          </button>
+        ) : null}
       </div>
 
       <p className="text-base leading-relaxed text-ink-soft">{miracle.summary}</p>
