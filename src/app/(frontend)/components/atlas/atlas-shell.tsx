@@ -11,6 +11,7 @@ import { Globe } from './globe'
 import { MiracleDetail } from './miracle-detail'
 import { MiracleList } from './miracle-list'
 import { ModeToggle } from './mode-toggle'
+import { type OrbitHandle, startOrbit } from './orbit'
 import { SearchInput } from './search-input'
 import { TimelineScrub } from './timeline-scrub'
 import {
@@ -558,54 +559,3 @@ function isMapVisible(mapRef: MapRef): boolean {
   return container.offsetParent !== null
 }
 
-type MapboxMap = ReturnType<MapRef['getMap']>
-
-type OrbitHandle = {
-  stop: () => void
-}
-
-// Slowly rotate the map's bearing around the current centre after a flyTo
-// completes — gives the "360 rotoscope around the cathedral" feel. Stops on
-// any user interaction (drag, wheel, pinch). Returns a handle so the caller
-// can stop manually (e.g. when selection changes).
-function startOrbit(
-  map: MapboxMap,
-  options: { durationMs?: number; onStop?: () => void } = {},
-): OrbitHandle {
-  const { durationMs = 60000, onStop } = options
-  let active = true
-  let rafId = 0
-  const startTime = performance.now()
-  const initialBearing = map.getBearing()
-
-  function step(now: number) {
-    if (!active) return
-    const elapsed = now - startTime
-    const bearing = (initialBearing + (elapsed / durationMs) * 360) % 360
-    map.setBearing(bearing)
-    rafId = requestAnimationFrame(step)
-  }
-  rafId = requestAnimationFrame(step)
-
-  function onUserInteract() {
-    stop()
-  }
-
-  // Mapbox surfaces drag/zoom/touch via these events. `dragstart` fires for
-  // pan; `wheel`/`touchstart` cover zoom and pinch.
-  map.on('dragstart', onUserInteract)
-  map.on('wheel', onUserInteract)
-  map.on('touchstart', onUserInteract)
-
-  function stop() {
-    if (!active) return
-    active = false
-    cancelAnimationFrame(rafId)
-    map.off('dragstart', onUserInteract)
-    map.off('wheel', onUserInteract)
-    map.off('touchstart', onUserInteract)
-    onStop?.()
-  }
-
-  return { stop }
-}

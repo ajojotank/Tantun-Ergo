@@ -4,6 +4,7 @@
 import Image from 'next/image'
 import { useEffect, useRef } from 'react'
 
+import { NarrativeBlock } from './narrative'
 import {
   type MiracleSummary,
   PIN_HEX,
@@ -202,30 +203,3 @@ export function MiracleDetail({
   )
 }
 
-// Permissive Lexical walker — paragraphs and inline text only. Switch
-// to @payloadcms/richtext-lexical/react's <RichText/> when richer
-// narrative formatting (headings, lists, links) is needed.
-function NarrativeBlock({ node }: { node: unknown }) {
-  const root = (node as { root?: { children?: unknown[] } } | null)?.root
-  const children = Array.isArray(root?.children) ? root!.children : []
-  return (
-    <div className="space-y-4 text-base leading-relaxed text-ink lg:text-lg">
-      {children.map((c, i) => (
-        <Paragraph key={i} node={c} />
-      ))}
-    </div>
-  )
-}
-
-function Paragraph({ node }: { node: unknown }) {
-  const n = node as {
-    type?: string
-    children?: Array<{ text?: string; type?: string }>
-  } | null
-  if (!n || n.type !== 'paragraph') return null
-  const text = (n.children ?? [])
-    .map((c) => (typeof c?.text === 'string' ? c.text : ''))
-    .join('')
-  if (!text) return null
-  return <p>{text}</p>
-}

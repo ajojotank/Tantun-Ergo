@@ -12,8 +12,10 @@ import Map, {
 import { cn } from '@/lib/cn'
 import { CollapsibleMap } from './collapsible-map'
 import { applyDuskPreset, resolveStyleUrl } from './mapbox-style'
+import { type OrbitHandle, startOrbit } from './orbit'
 import { PilgrimageBook } from './pilgrimage-book'
-import { type PilgrimageSummary, PIN_HEX } from './types'
+import { PilgrimageCover } from './pilgrimage-cover'
+import { type PilgrimageRouteStop, type PilgrimageSummary, PIN_HEX } from './types'
 
 const TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
 
@@ -28,16 +30,37 @@ const CHAPTER_FLY_OPTS = {
   essential: true,
 } as const
 
+// Cover-page map padding — pixels inset from each edge when fitBounds
+// computes the camera to show all stops. Generous on top so chapter pins
+// near the bounds aren't pinned to the canvas edge.
+const COVER_FIT_PADDING = 80
+
+// Slow rotation rates. Chapters get the standard 60s/revolution from the
+// atlas explore page; the cover orbit is slower (90s) so the user has
+// time to read the cover copy without the globe distracting.
+const CHAPTER_ORBIT_MS = 60_000
+const COVER_ORBIT_MS = 90_000
+
+type ViewMode = 'cover' | 'chapter'
+
 /**
  * Full pilgrimage walker shell. Mirrors AtlasShell's layout so users get
  * the same mental model when switching modes:
  *
- * Desktop: 42% book | 1fr map (sticky)
- * Mobile:  collapsible map at top, book below
+ *   Desktop: 42% book | 1fr map (sticky)
+ *   Mobile:  collapsible map at top, book below
  *
- * Single shared map per branch — flyTo on activeIdx change. Markers render
- * for every stop, with the active one highlighted. Map is non-interactive
- * (interactive=false) so users navigate via the book, not by panning.
+ * Two view modes live behind the same shell:
+ *
+ *   'cover'   — first thing the user sees. Cover image + title + intro +
+ *               "Begin Pilgrimage" CTA on the left; map fits all chapter
+ *               pins to bounds and orbits the centroid on the right.
+ *   'chapter' — paged-chapter reader (PilgrimageBook). Map flies to the
+ *               active chapter's coordinate, orbits THAT point.
+ *
+ * Single shared map per branch — flyTo / fitBounds + orbit is driven by
+ * a single useEffect keyed on [viewMode, activeIdx, stops]. Map is
+ * non-interactive (interactive=false) so users navigate via the book.
  */
 export function PilgrimageShell({
   pilgrimage,
@@ -47,9 +70,11 @@ export function PilgrimageShell({
   styleUrl?: string
 }) {
   const stops = pilgrimage.route
+  const [viewMode, setViewMode] = useState<ViewMode>('cover')
   const [activeIdx, setActiveIdx] = useState(0)
   const desktopMapRef = useRef<MapRef | null>(null)
   const mobileMapRef = useRef<MapRef | null>(null)
+  const orbitRef = useRef<OrbitHandle | null>(null)
 
   const handlePrev = useCallback(() => {
     setActiveIdx((i) => Math.max(0, i - 1))
@@ -60,36 +85,87 @@ export function PilgrimageShell({
   const handleJump = useCallback((i: number) => {
     setActiveIdx(i)
   }, [])
+  const handleBegin = useCallback(() => {
+    setActiveIdx(0)
+    setViewMode('chapter')
+  }, [])
+  const handleCover = useCallback(() => {
+    setViewMode('cover')
+  }, [])
 
-  // flyTo on chapter change. Picks whichever branch is currently visible
-  // (desktop or mobile), same approach AtlasShell uses for selection flyTo.
+  // Drive the camera. One effect, two branches:
+  //   - cover: fitBounds to all stops, then orbit slowly around the centroid.
+  //   - chapter: flyTo the active stop's coords with chapter cinematic
+  //              settings, then orbit the chapter point.
+  // Effect runs on viewMode / activeIdx / stops changes. Cleanup cancels
+  // the orbit so it doesn't lap into the next transition.
   useEffect(() => {
-    const stop = stops[activeIdx]
-    if (!stop) return
+    orbitRef.current?.stop()
+    orbitRef.current = null
+
     const desktopVisible =
       desktopMapRef.current && isMapVisible(desktopMapRef.current)
     const target = desktopVisible
       ? desktopMapRef.current
       : mobileMapRef.current
     if (!target) return
-    target.flyTo({
-      center: stop.miracle.coordinates,
-      bearing: (activeIdx % 2 === 0 ? -20 : 20),
-      ...CHAPTER_FLY_OPTS,
-    })
-  }, [activeIdx, stops])
 
-  // Initial map view: centered on first stop, zoomed out enough to feel
-  // like "the journey ahead". flyTo will commit the camera to chapter 1 on
-  // mount via the effect above.
-  const initialView = useMemo(() => {
-    const first = stops[0]?.miracle.coordinates ?? [12.4534, 41.9029] // fallback: Vatican
-    return {
-      longitude: first[0],
-      latitude: first[1],
-      zoom: 3.4,
-      pitch: 0,
+    const map = target.getMap()
+    let startTimer = 0
+
+    if (viewMode === 'cover') {
+      // Fit all chapter pins. cameraForBounds yields a center+zoom that
+      // best frames the bounding box; flyTo then commits with a reset
+      // pitch + bearing so we always start from the same orientation.
+      const bounds = computeBounds(stops)
+      const camera = map.cameraForBounds(bounds, { padding: COVER_FIT_PADDING })
+      if (camera) {
+        target.flyTo({
+          center: camera.center,
+          zoom: camera.zoom ?? 2,
+          pitch: 0,
+          bearing: 0,
+          duration: 1600,
+          essential: true,
+        })
+      }
+      startTimer = window.setTimeout(() => {
+        orbitRef.current = startOrbit(map, { durationMs: COVER_ORBIT_MS })
+      }, 1800)
+    } else {
+      const stop = stops[activeIdx]
+      if (!stop) return
+      target.flyTo({
+        center: stop.miracle.coordinates,
+        bearing: activeIdx % 2 === 0 ? -20 : 20,
+        ...CHAPTER_FLY_OPTS,
+      })
+      startTimer = window.setTimeout(() => {
+        orbitRef.current = startOrbit(map, { durationMs: CHAPTER_ORBIT_MS })
+      }, CHAPTER_FLY_OPTS.duration + 200)
     }
+
+    return () => {
+      window.clearTimeout(startTimer)
+      orbitRef.current?.stop()
+      orbitRef.current = null
+    }
+  }, [viewMode, activeIdx, stops])
+
+  // Initial map view — gets overridden almost immediately by the effect
+  // above (fitBounds for cover, flyTo for chapter), but we still need a
+  // sensible first paint before that runs. Use the centroid of all stops
+  // at globe-browse zoom so the first frame already shows the route's
+  // continent rather than a default 0,0 wash.
+  const initialView = useMemo(() => {
+    if (stops.length === 0) {
+      return { longitude: 12.4534, latitude: 41.9029, zoom: 3.4, pitch: 0 }
+    }
+    const avgLng =
+      stops.reduce((sum, s) => sum + s.miracle.coordinates[0], 0) / stops.length
+    const avgLat =
+      stops.reduce((sum, s) => sum + s.miracle.coordinates[1], 0) / stops.length
+    return { longitude: avgLng, latitude: avgLat, zoom: 2, pitch: 0 }
   }, [stops])
 
   if (stops.length === 0) {
@@ -102,9 +178,32 @@ export function PilgrimageShell({
     )
   }
 
+  // Left/below pane content — same component instance (cover OR book)
+  // rendered in both desktop and mobile branches so state and behavior
+  // stay aligned without duplication.
+  const paneContent =
+    viewMode === 'cover' ? (
+      <PilgrimageCover
+        pilgrimage={pilgrimage}
+        totalChapters={stops.length}
+        onBegin={handleBegin}
+        className="h-full"
+      />
+    ) : (
+      <PilgrimageBook
+        stops={stops}
+        activeIdx={activeIdx}
+        onPrev={handlePrev}
+        onNext={handleNext}
+        onJump={handleJump}
+        onCover={handleCover}
+        className="h-full"
+      />
+    )
+
   return (
     <div className="relative md:flex md:h-full md:flex-col">
-      {/* Mobile: collapsible map → paged book. */}
+      {/* Mobile: collapsible map → cover/book pane. */}
       <div className="md:hidden">
         <CollapsibleMap onResize={() => mobileMapRef.current?.getMap().resize()}>
           {TOKEN ? (
@@ -121,7 +220,11 @@ export function PilgrimageShell({
             >
               <AttributionControl compact position="bottom-left" />
               {stops.map((s, i) => (
-                <ChapterMarker key={s.miracle.id} stop={s} active={i === activeIdx} />
+                <ChapterMarker
+                  key={s.miracle.id}
+                  stop={s}
+                  active={viewMode === 'chapter' && i === activeIdx}
+                />
               ))}
             </Map>
           ) : (
@@ -129,29 +232,14 @@ export function PilgrimageShell({
           )}
         </CollapsibleMap>
         <div className="mx-auto w-full max-w-3xl px-5 py-4 sm:px-8">
-          <PilgrimageBook
-            stops={stops}
-            activeIdx={activeIdx}
-            onPrev={handlePrev}
-            onNext={handleNext}
-            onJump={handleJump}
-          />
+          {paneContent}
         </div>
       </div>
 
       {/* Desktop: 42%/1fr split with sticky map on the right. */}
       <div className="hidden md:flex md:flex-1 md:overflow-hidden">
         <div className="grid h-full w-full grid-cols-[minmax(380px,42%)_minmax(0,1fr)] overflow-hidden">
-          <div className="relative h-full overflow-hidden">
-            <PilgrimageBook
-              stops={stops}
-              activeIdx={activeIdx}
-              onPrev={handlePrev}
-              onNext={handleNext}
-              onJump={handleJump}
-              className="h-full"
-            />
-          </div>
+          <div className="relative h-full overflow-hidden">{paneContent}</div>
           <div className="h-full bg-ink">
             {TOKEN ? (
               <Map
@@ -167,7 +255,11 @@ export function PilgrimageShell({
               >
                 <AttributionControl compact position="bottom-left" />
                 {stops.map((s, i) => (
-                  <ChapterMarker key={s.miracle.id} stop={s} active={i === activeIdx} />
+                  <ChapterMarker
+                    key={s.miracle.id}
+                    stop={s}
+                    active={viewMode === 'chapter' && i === activeIdx}
+                  />
                 ))}
               </Map>
             ) : (
@@ -184,7 +276,7 @@ function ChapterMarker({
   stop,
   active,
 }: {
-  stop: { miracle: { id: string; coordinates: [number, number]; type: keyof typeof PIN_HEX } }
+  stop: PilgrimageRouteStop
   active: boolean
 }) {
   return (
@@ -219,4 +311,17 @@ function MapTokenMissing() {
 function isMapVisible(mapRef: MapRef): boolean {
   const container = mapRef.getMap().getContainer()
   return container.offsetParent !== null
+}
+
+// Bounding box from all chapter coordinates, in [southwest, northeast]
+// form per Mapbox's LngLatBoundsLike convention.
+function computeBounds(
+  stops: PilgrimageRouteStop[],
+): [[number, number], [number, number]] {
+  const lngs = stops.map((s) => s.miracle.coordinates[0])
+  const lats = stops.map((s) => s.miracle.coordinates[1])
+  return [
+    [Math.min(...lngs), Math.min(...lats)],
+    [Math.max(...lngs), Math.max(...lats)],
+  ]
 }
