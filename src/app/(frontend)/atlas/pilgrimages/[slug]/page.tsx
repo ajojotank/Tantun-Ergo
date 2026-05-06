@@ -4,7 +4,7 @@ import { draftMode } from 'next/headers'
 import { notFound } from 'next/navigation'
 
 import { LivePreviewListener } from '../../../components/live-preview-listener'
-import { Pilgrimage } from '../../../components/atlas/pilgrimage'
+import { PilgrimageShell } from '../../../components/atlas/pilgrimage-shell'
 import { toPilgrimageSummary } from '../../../components/atlas/serialise'
 import { payload } from '@/lib/payload'
 
@@ -74,23 +74,8 @@ export default async function PilgrimageWalker({
   const pilgrimage = toPilgrimageSummary(doc, { includeRoute: true })
 
   return (
-    <main className="min-h-[80dvh] pb-12">
-      <header className="mx-auto w-full max-w-7xl px-5 py-12 sm:px-8 md:py-16">
-        <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-rubric">
-          Pilgrimage{pilgrimage.isSample ? ' · [Sample]' : ''}
-        </p>
-        <h1 className="mt-3 font-display text-5xl italic leading-tight tracking-tight text-ink md:text-7xl">
-          {pilgrimage.title}
-        </h1>
-        {pilgrimage.subtitle ? (
-          <p className="mt-4 max-w-[55ch] font-display text-xl italic leading-relaxed text-ink-soft md:text-2xl">
-            {pilgrimage.subtitle}
-          </p>
-        ) : null}
-      </header>
-
-      <Pilgrimage pilgrimage={pilgrimage} styleUrl={styleUrl} />
-
+    <main className="min-h-[80dvh] pb-12 md:flex md:min-h-0 md:flex-1 md:flex-col md:overflow-hidden md:pb-0">
+      <PilgrimageShell pilgrimage={pilgrimage} styleUrl={styleUrl} />
       {isDraft ? <LivePreviewListener serverURL={SERVER_URL} /> : null}
     </main>
   )
