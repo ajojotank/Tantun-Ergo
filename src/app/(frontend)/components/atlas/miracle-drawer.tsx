@@ -33,11 +33,18 @@ export function MiracleDrawer({
       closeButtonRef.current?.focus()
     }, 0)
 
-    // Lock body scroll while the drawer is up. Prevents wheel/touch events
-    // from bleeding through to the page (iOS Safari's overscroll-contain
-    // alone isn't enough). Restore the user's prior overflow on cleanup.
+    // Body scroll lock — ONLY on mobile (where the drawer is a bottom-sheet
+    // covering most of the viewport and iOS Safari's overscroll-contain alone
+    // isn't sufficient to prevent background scroll). On desktop the sticky-
+    // 100dvh layout already constrains the work area; locking body there
+    // interferes with the list column's Sticky scroll-anchor calculations and
+    // can make the list feel jittery/unresponsive while the drawer is open.
+    const isMobileViewport =
+      typeof window !== 'undefined' && window.innerWidth < 768
     const prevBodyOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
+    if (isMobileViewport) {
+      document.body.style.overflow = 'hidden'
+    }
 
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') onClose()
@@ -46,7 +53,9 @@ export function MiracleDrawer({
     return () => {
       window.clearTimeout(focusTimer)
       window.removeEventListener('keydown', onKey)
-      document.body.style.overflow = prevBodyOverflow
+      if (isMobileViewport) {
+        document.body.style.overflow = prevBodyOverflow
+      }
       previouslyFocused?.focus?.()
     }
   }, [miracle, onClose])
