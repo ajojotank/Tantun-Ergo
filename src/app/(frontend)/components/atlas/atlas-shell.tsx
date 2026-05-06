@@ -26,9 +26,14 @@ const MAX_YEAR = new Date().getFullYear()
 // Card-click cinematic — fly to coords at zoom 14 + pitch 50 so Mapbox
 // Standard's 3D buildings + landmark cathedrals render at the arrival point.
 const FLY_TO_OPTS = {
-  zoom: 16, // Standard's 3D buildings + landmark cathedrals appear reliably at 15-17
-  pitch: 50,
-  duration: 1500,
+  // Zoom 17 puts us right at the building level — landmark cathedrals fill
+  // the frame instead of being distant blocks. Pitch 60 gives the
+  // dramatic-approach angle. Duration 3500ms is slow enough that tiles
+  // and 3D models have time to load before the camera arrives — the
+  // "wow on landing" timing.
+  zoom: 17,
+  pitch: 60,
+  duration: 3500,
   essential: true,
 } as const
 
