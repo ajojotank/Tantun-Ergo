@@ -2,6 +2,7 @@
 'use client'
 
 import Image from 'next/image'
+import { useState } from 'react'
 
 import { cn } from '@/lib/cn'
 import {
@@ -11,6 +12,8 @@ import {
   TYPE_LABEL,
   formatYear,
 } from './types'
+
+const PAGE_SIZE = 8
 
 export function MiracleList({
   miracles,
@@ -27,6 +30,16 @@ export function MiracleList({
   onHover: (slug: string | null) => void
   className?: string
 }) {
+  // Track the last `miracles` reference; when it changes we reset pagination
+  // synchronously during render via a state setter (the React-19-recommended
+  // pattern in place of a setState-in-effect).
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+  const [lastMiracles, setLastMiracles] = useState(miracles)
+  if (lastMiracles !== miracles) {
+    setLastMiracles(miracles)
+    setVisibleCount(PAGE_SIZE)
+  }
+
   if (miracles.length === 0) {
     return (
       <div
@@ -45,58 +58,73 @@ export function MiracleList({
     )
   }
 
+  const shown = miracles.slice(0, visibleCount)
+  const remaining = miracles.length - shown.length
+
   return (
-    <ol className={cn('flex flex-col gap-3', className)}>
-      {miracles.map((m) => {
-        const isSelected = m.slug === selectedSlug
-        const isHovered = m.slug === hoveredSlug
-        return (
-          <li key={m.id}>
-            <button
-              type="button"
-              onClick={() => onSelect(m.slug)}
-              onMouseEnter={() => onHover(m.slug)}
-              onMouseLeave={() => onHover(null)}
-              onFocus={() => onHover(m.slug)}
-              onBlur={() => onHover(null)}
-              aria-pressed={isSelected}
-              className={cn(
-                'group flex w-full items-stretch gap-4 rounded-2xl border bg-vellum/85 p-3 text-left transition-all',
-                isSelected
-                  ? 'border-ink shadow-altar'
-                  : isHovered
-                    ? 'border-ink/30 shadow-altar'
-                    : 'border-ink/10 hover:border-ink/20',
-              )}
-            >
-              <Thumbnail miracle={m} highlighted={isSelected || isHovered} />
-              <div className="flex min-w-0 flex-1 flex-col">
-                <div className="flex items-center gap-2">
-                  <span
-                    aria-hidden
-                    className="inline-block size-2 rounded-full"
-                    style={{ backgroundColor: PIN_HEX[m.type] }}
-                  />
-                  <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-                    {TYPE_LABEL[m.type]} · {STATUS_LABEL[m.ecclesialStatus]}
-                  </span>
+    <div className={cn('flex flex-col gap-3', className)}>
+      <ol className="flex flex-col gap-3">
+        {shown.map((m) => {
+          const isSelected = m.slug === selectedSlug
+          const isHovered = m.slug === hoveredSlug
+          return (
+            <li key={m.id}>
+              <button
+                type="button"
+                onClick={() => onSelect(m.slug)}
+                onMouseEnter={() => onHover(m.slug)}
+                onMouseLeave={() => onHover(null)}
+                onFocus={() => onHover(m.slug)}
+                onBlur={() => onHover(null)}
+                aria-pressed={isSelected}
+                className={cn(
+                  'group flex w-full items-stretch gap-4 rounded-2xl border bg-vellum/85 p-3 text-left transition-all',
+                  isSelected
+                    ? 'border-ink shadow-altar'
+                    : isHovered
+                      ? 'border-ink/30 shadow-altar'
+                      : 'border-ink/10 hover:border-ink/20',
+                )}
+              >
+                <Thumbnail miracle={m} highlighted={isSelected || isHovered} />
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <div className="flex items-center gap-2">
+                    <span
+                      aria-hidden
+                      className="inline-block size-2 rounded-full"
+                      style={{ backgroundColor: PIN_HEX[m.type] }}
+                    />
+                    <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
+                      {TYPE_LABEL[m.type]} · {STATUS_LABEL[m.ecclesialStatus]}
+                    </span>
+                  </div>
+                  <h3 className="mt-1 truncate font-display text-xl italic leading-tight text-ink group-hover:text-rubric-deep md:text-2xl">
+                    {m.title}
+                  </h3>
+                  <p className="mt-0.5 truncate font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
+                    {m.locationName} · {formatYear(m.yearOccurred, m.dateApproximate)}
+                    {m.isSample ? ' · [Sample]' : ''}
+                  </p>
+                  <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-ink-soft">
+                    {m.summary}
+                  </p>
                 </div>
-                <h3 className="mt-1 truncate font-display text-xl italic leading-tight text-ink group-hover:text-rubric-deep md:text-2xl">
-                  {m.title}
-                </h3>
-                <p className="mt-0.5 truncate font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-                  {m.locationName} · {formatYear(m.yearOccurred, m.dateApproximate)}
-                  {m.isSample ? ' · [Sample]' : ''}
-                </p>
-                <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-ink-soft">
-                  {m.summary}
-                </p>
-              </div>
-            </button>
-          </li>
-        )
-      })}
-    </ol>
+              </button>
+            </li>
+          )
+        })}
+      </ol>
+
+      {remaining > 0 ? (
+        <button
+          type="button"
+          onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+          className="mt-3 w-full rounded-full border border-ink/15 bg-vellum/85 px-4 py-3 font-mono text-[11px] uppercase tracking-[0.22em] text-ink-soft transition-colors hover:border-ink/30 hover:text-ink"
+        >
+          Show {Math.min(remaining, PAGE_SIZE)} more · {remaining} remaining
+        </button>
+      ) : null}
+    </div>
   )
 }
 
@@ -127,7 +155,6 @@ function Thumbnail({
       </div>
     )
   }
-  // No artwork — paint a typed-pin block as the thumbnail.
   return (
     <div
       aria-hidden

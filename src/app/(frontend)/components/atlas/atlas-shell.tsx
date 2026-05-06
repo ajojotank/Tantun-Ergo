@@ -10,6 +10,7 @@ import { Globe } from './globe'
 import { MiracleDrawer } from './miracle-drawer'
 import { MiracleList } from './miracle-list'
 import { ModeToggle } from './mode-toggle'
+import { SearchInput } from './search-input'
 import { TimelineScrub } from './timeline-scrub'
 import {
   type EcclesialStatus,
@@ -62,8 +63,10 @@ export function AtlasShell({
     new Set(),
   )
   const [yearMax, setYearMax] = useState(MAX_YEAR)
+  const [query, setQuery] = useState('')
 
   const visibleMiracles = useMemo(() => {
+    const q = query.trim().toLowerCase()
     return miracles.filter((m) => {
       if (m.yearOccurred > yearMax) return false
       if (selectedTypes.size > 0 && !selectedTypes.has(m.type)) return false
@@ -72,9 +75,13 @@ export function AtlasShell({
         !selectedStatuses.has(m.ecclesialStatus)
       )
         return false
+      if (q.length > 0) {
+        const haystack = `${m.title} ${m.locationName} ${m.summary}`.toLowerCase()
+        if (!haystack.includes(q)) return false
+      }
       return true
     })
-  }, [miracles, yearMax, selectedTypes, selectedStatuses])
+  }, [miracles, yearMax, selectedTypes, selectedStatuses, query])
 
   const selected = useMemo(
     () => miracles.find((m) => m.slug === selectedSlug) ?? null,
@@ -116,6 +123,10 @@ export function AtlasShell({
   function handleDeselect() {
     setSelectedSlug(null)
   }
+
+  const searchInput = (
+    <SearchInput value={query} onChange={setQuery} />
+  )
 
   const filterChips = (
     <FilterChips
@@ -159,7 +170,8 @@ export function AtlasShell({
           expanded (filtering is the more frequent action). Timeline stays
           below — set once and rarely revisited. */}
       <div className="md:hidden">
-        <div className="mx-auto w-full max-w-3xl px-5 pt-2 pb-4 sm:px-8">
+        <div className="mx-auto flex w-full max-w-3xl flex-col gap-3 px-5 pt-2 pb-4 sm:px-8">
+          {searchInput}
           {filterChips}
         </div>
         <CollapsibleMap onResize={() => mobileMapRef.current?.getMap().resize()}>
@@ -194,6 +206,7 @@ export function AtlasShell({
         <div className="mx-auto grid w-full max-w-[1600px] grid-cols-[minmax(0,1fr)_minmax(0,55%)] border-y border-ink/10">
           <div className="flex flex-col gap-6 px-6 py-8 lg:px-10">
             <div className="flex flex-col gap-3">
+              {searchInput}
               {filterChips}
               {timelineScrub}
             </div>
