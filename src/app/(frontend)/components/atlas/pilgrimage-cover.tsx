@@ -29,9 +29,13 @@ export function PilgrimageCover({
   return (
     <section
       aria-label="Pilgrimage cover"
-      className={cn('relative flex h-full flex-col', className)}
+      // Responsive layout — desktop fills its bounded column (h-full +
+      // internal scroll); mobile flows naturally so content height drives
+      // the section and the page itself scrolls. Same shape as
+      // PilgrimageBook so cover ↔ chapter transitions feel layout-stable.
+      className={cn('relative flex flex-col md:h-full', className)}
     >
-      <div className="atlas-scroll flex-1 overflow-y-auto">
+      <div className="atlas-scroll md:flex-1 md:overflow-y-auto">
         <div className="flex flex-col gap-6 px-6 pt-6 pb-32 lg:px-10 lg:pt-8">
           <Link
             href="/atlas/pilgrimages"

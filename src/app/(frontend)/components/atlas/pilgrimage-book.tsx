@@ -128,11 +128,19 @@ export function PilgrimageBook({
   return (
     <section
       aria-label="Pilgrimage chapters"
-      className={cn('relative flex h-full flex-col', className)}
+      // Responsive layout. On desktop the section fills its bounded column
+      // (h-full, flex column with internal scroll on the article). On mobile
+      // the section flows naturally — content height = article + bar — and
+      // the page itself scrolls. Without `md:h-full`-only, mobile parents
+      // (which have no defined height) would resolve `h-full` to 0 and the
+      // chapter pane would collapse to zero height.
+      className={cn('relative flex flex-col md:h-full', className)}
     >
-      {/* Chapter pane — Framer animates between activeIdx values. Drag-x lets
-          touch users swipe through. */}
-      <div className="relative flex-1 overflow-hidden">
+      {/* Chapter pane — Framer animates between activeIdx values. Drag-x
+          lets touch users swipe through. The article positions absolutely
+          inside its flex-1 wrapper on desktop (column-scroll); on mobile
+          it's natural flow so it can grow to its content's full height. */}
+      <div className="relative md:flex-1 md:overflow-hidden">
         <AnimatePresence mode="wait" initial={false}>
           <motion.article
             key={activeIdx}
@@ -145,7 +153,7 @@ export function PilgrimageBook({
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.2}
             onDragEnd={handleDragEnd}
-            className="atlas-scroll absolute inset-0 flex flex-col gap-6 overflow-y-auto px-6 pb-24 pt-6 lg:px-10"
+            className="atlas-scroll flex flex-col gap-6 px-6 pb-24 pt-6 md:absolute md:inset-0 md:overflow-y-auto lg:px-10"
           >
             <Chapter stop={stop} index={activeIdx} total={total} />
           </motion.article>
