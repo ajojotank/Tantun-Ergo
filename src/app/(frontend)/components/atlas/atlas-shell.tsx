@@ -292,8 +292,9 @@ export function AtlasShell({
 
   return (
     <div className="relative md:flex md:h-full md:flex-col">
-      {/* MOBILE hero — tight band, hidden on desktop. SiteHeader gives nav;
-          this gives page identity (eyebrow + title) + the mode toggle. */}
+      {/* MOBILE hero — tight band, hidden on desktop. SiteHeader above gives
+          nav; this gives page identity (eyebrow + title + short description)
+          + the mode toggle. */}
       <header className="mx-auto flex w-full max-w-7xl flex-col gap-3 px-5 py-4 sm:px-8 md:hidden">
         <div>
           <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-rubric">
@@ -302,6 +303,10 @@ export function AtlasShell({
           <h1 className="mt-1 font-display text-3xl italic leading-tight tracking-tight text-ink">
             The Miracle Atlas
           </h1>
+          <p className="mt-2 max-w-[55ch] text-sm leading-relaxed text-ink-soft">
+            A globe of approved miracles, anchored to coordinates and
+            centuries. Wander the whole record, or walk a curated pilgrimage.
+          </p>
         </div>
         <ModeToggle />
       </header>
@@ -378,11 +383,12 @@ export function AtlasShell({
               />
             ) : (
               <>
-                {/* Hero — tight band that scrolls with the column on first
-                    interaction. SiteHeader above gives nav; this gives page
-                    identity (eyebrow + title) + the mode toggle, kept compact
-                    so the list is reachable without scrolling. */}
-                <header className="flex items-end justify-between gap-4 px-6 py-6 lg:px-10 lg:py-8">
+                {/* Hero — scrolls with the column on first interaction.
+                    SiteHeader above gives nav; this gives page identity
+                    (eyebrow + title + short description) + the mode toggle.
+                    Compact title (text-3xl/4xl, not 5xl-7xl) so the list is
+                    reachable without scrolling far. */}
+                <header className="flex flex-col gap-3 px-6 py-6 lg:px-10 lg:py-8">
                   <div>
                     <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-rubric">
                       Plate I · Cartography
@@ -390,6 +396,11 @@ export function AtlasShell({
                     <h1 className="mt-1 font-display text-3xl italic leading-tight tracking-tight text-ink lg:text-4xl">
                       The Miracle Atlas
                     </h1>
+                    <p className="mt-2 max-w-[55ch] text-sm leading-relaxed text-ink-soft">
+                      A globe of approved miracles, anchored to coordinates
+                      and centuries. Wander the whole record, or walk a
+                      curated pilgrimage.
+                    </p>
                   </div>
                   <ModeToggle />
                 </header>

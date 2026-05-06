@@ -54,7 +54,10 @@ export default async function AtlasPage({
   const miracles: MiracleSummary[] = result.docs.map((d) => toMiracleSummary(d))
 
   return (
-    <main className="min-h-[80dvh] pb-24 md:flex md:min-h-0 md:flex-1 md:flex-col md:overflow-hidden md:pb-0">
+    <main
+      data-atlas-lock="true"
+      className="min-h-[80dvh] pb-24 md:flex md:min-h-0 md:flex-1 md:flex-col md:overflow-hidden md:pb-0"
+    >
       <AtlasShell
         miracles={miracles}
         styleUrl={styleUrl}

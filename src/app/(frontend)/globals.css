@@ -117,6 +117,22 @@ body::before {
   border-top-color: transparent !important;
 }
 
+/* Full-bleed atlas routes lock the body to exactly 100dvh + clip overflow
+   on desktop, so the header pins to the top and main fills the rest
+   without ever causing the page itself to scroll. The listings column
+   inside main scrolls internally; the map column stays put. Mobile is
+   intentionally exempt — that layout is meant to scroll naturally
+   (header → hero → collapsible map → filters → list).
+
+   Opt in by setting `data-atlas-lock="true"` on the page's <main>.
+   Currently used by /atlas and /atlas/pilgrimages/[slug]. */
+@media (min-width: 768px) {
+  body:has(main[data-atlas-lock="true"]) {
+    height: 100dvh;
+    overflow: hidden;
+  }
+}
+
 /* Atlas-themed scrollbars — sacred-palette thumb, transparent track,
    refined width with a 2px transparent border on the thumb so it visually
    pulls inward from the container edge. Apply via .atlas-scroll class. */
