@@ -2,7 +2,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { cn } from '@/lib/cn'
 import {
@@ -13,7 +13,7 @@ import {
   formatYear,
 } from './types'
 
-const PAGE_SIZE = 8
+const PAGE_SIZE = 16
 
 export function MiracleList({
   miracles,
@@ -21,6 +21,7 @@ export function MiracleList({
   hoveredSlug,
   onSelect,
   onHover,
+  scrollRoot,
   className,
 }: {
   miracles: MiracleSummary[]
@@ -28,6 +29,10 @@ export function MiracleList({
   hoveredSlug: string | null
   onSelect: (slug: string) => void
   onHover: (slug: string | null) => void
+  /** The scrollable ancestor that owns the visible viewport for this list.
+      On desktop, the left column (its overflow-y-auto wrapper). On mobile
+      and other contexts, leave undefined to use the document viewport. */
+  scrollRoot?: Element | null
   className?: string
 }) {
   // Track the last `miracles` reference; when it changes we reset pagination
@@ -39,6 +44,28 @@ export function MiracleList({
     setLastMiracles(miracles)
     setVisibleCount(PAGE_SIZE)
   }
+
+  // Infinite scroll: a 1px sentinel below the last rendered card. When it
+  // intersects the scroll root (with a 400px rootMargin so we preload before
+  // the user actually hits the bottom), bump visibleCount by another page.
+  // Only mount the observer when there's still more to load.
+  const sentinelRef = useRef<HTMLDivElement | null>(null)
+  const hasMore = visibleCount < miracles.length
+  useEffect(() => {
+    if (!hasMore) return
+    const sentinel = sentinelRef.current
+    if (!sentinel) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setVisibleCount((c) => Math.min(miracles.length, c + PAGE_SIZE))
+        }
+      },
+      { root: scrollRoot ?? null, rootMargin: '400px' },
+    )
+    observer.observe(sentinel)
+    return () => observer.disconnect()
+  }, [scrollRoot, miracles.length, hasMore])
 
   if (miracles.length === 0) {
     return (
@@ -115,14 +142,18 @@ export function MiracleList({
         })}
       </ol>
 
-      {remaining > 0 ? (
-        <button
-          type="button"
-          onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
-          className="mt-3 w-full rounded-full border border-ink/15 bg-vellum/85 px-4 py-3 font-mono text-[11px] uppercase tracking-[0.22em] text-ink-soft transition-colors hover:border-ink/30 hover:text-ink"
+      {hasMore ? (
+        // Sentinel — IntersectionObserver above watches it and increments
+        // visibleCount when it enters the viewport. Loading is synchronous
+        // (in-memory list slice), so no spinner is needed; the small
+        // remaining-count line gives the user a sense of progress.
+        <div
+          ref={sentinelRef}
+          aria-hidden
+          className="py-4 text-center font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft/60"
         >
-          Show {Math.min(remaining, PAGE_SIZE)} more · {remaining} remaining
-        </button>
+          {remaining} more · loading on scroll
+        </div>
       ) : null}
     </div>
   )

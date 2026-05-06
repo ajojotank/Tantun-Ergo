@@ -36,7 +36,7 @@ export function SiteHeader() {
 
   return (
     <>
-      <header className={`${positioning} mx-auto flex w-full max-w-7xl items-center justify-between px-5 py-7 sm:px-8 md:py-10`}>
+      <header className={`${positioning} mx-auto flex w-full max-w-7xl items-center justify-between px-5 py-4 sm:px-8 md:py-6`}>
         <Link href="/" className="block">
           <Wordmark tone={overDark ? 'light' : 'dark'} />
         </Link>

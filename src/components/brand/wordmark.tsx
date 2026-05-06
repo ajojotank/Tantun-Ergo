@@ -13,7 +13,9 @@ export function Wordmark({
   tone?: 'light' | 'dark' // 'light' = vellum on dark hero; 'dark' = ink on cream
 }) {
   const text = tone === 'light' ? 'text-vellum' : 'text-ink'
-  const accent = tone === 'light' ? 'text-gilt' : 'text-rubric-deep'
+  // Chi-rho is always gold (gilt) regardless of tone — the brand mark stays
+  // consistent across the dark home hero and the vellum interior pages.
+  const accent = 'text-gilt'
   return (
     <span className={`inline-flex items-center gap-4 ${className ?? ''}`}>
       {showIcon ? (

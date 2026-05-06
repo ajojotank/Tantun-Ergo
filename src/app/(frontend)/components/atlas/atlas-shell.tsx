@@ -6,10 +6,10 @@ import { type MapRef } from 'react-map-gl/mapbox'
 
 import { CollapsibleMap } from './collapsible-map'
 import { FilterChips } from './filter-chips'
+import { FilterPanel } from './filter-panel'
 import { Globe } from './globe'
 import { MiracleDetail } from './miracle-detail'
 import { MiracleList } from './miracle-list'
-import { MobileFilterPanel } from './mobile-filter-panel'
 import { ModeToggle } from './mode-toggle'
 import { SearchInput } from './search-input'
 import { TimelineScrub } from './timeline-scrub'
@@ -75,6 +75,12 @@ export function AtlasShell({
   const desktopMapRef = useRef<MapRef | null>(null)
   const mobileMapRef = useRef<MapRef | null>(null)
   const orbitRef = useRef<OrbitHandle | null>(null)
+  // The desktop left scroll column held as state (via callback ref) rather
+  // than a useRef so we can pass it down to MiracleList as the
+  // IntersectionObserver root without reading `.current` during render.
+  // Re-renders are cheap (the value only changes when the element mounts).
+  const [desktopListScroll, setDesktopListScroll] =
+    useState<HTMLDivElement | null>(null)
   const [selectedSlug, setSelectedSlug] = useState<string | null>(
     initialFocusSlug ?? null,
   )
@@ -115,6 +121,15 @@ export function AtlasShell({
     selectedTypes.size +
     selectedStatuses.size +
     (yearMax < MAX_YEAR ? 1 : 0)
+
+  // Reset every filter dimension at once. Wired into FilterPanel's "Clear"
+  // button (only rendered when activeFilterCount > 0).
+  function clearFilters() {
+    setQuery('')
+    setSelectedTypes(new Set())
+    setSelectedStatuses(new Set())
+    setYearMax(MAX_YEAR)
+  }
 
   const selected = useMemo(
     () => miracles.find((m) => m.slug === selectedSlug) ?? null,
@@ -329,11 +344,14 @@ export function AtlasShell({
         </CollapsibleMap>
 
         {!selected ? (
-          <MobileFilterPanel activeCount={activeFilterCount}>
+          <FilterPanel
+            activeCount={activeFilterCount}
+            onClear={activeFilterCount > 0 ? clearFilters : undefined}
+          >
             {searchInput}
             {filterChips}
             {timelineScrub}
-          </MobileFilterPanel>
+          </FilterPanel>
         ) : null}
 
         {selected ? (
@@ -372,7 +390,10 @@ export function AtlasShell({
           {/* LEFT: single scroll container. Either list view (default) or
               MiracleDetail (when a card is selected). Map column on the
               right is never covered. */}
-          <div className="atlas-scroll relative h-full overflow-y-auto overscroll-y-none">
+          <div
+            ref={setDesktopListScroll}
+            className="atlas-scroll relative h-full overflow-y-auto overscroll-y-none"
+          >
             {selected ? (
               <MiracleDetail
                 key={selected.slug}
@@ -405,13 +426,18 @@ export function AtlasShell({
                   <ModeToggle />
                 </header>
 
-                {/* Sticky filter bar — pins to the top of the column so filters stay
-                    reachable while the list scrolls. */}
-                <div className="sticky top-0 z-10 flex flex-col gap-2 border-b border-ink/10 bg-vellum/95 px-6 py-3 backdrop-blur lg:px-10">
+                {/* Collapsible sticky filter bar — pins to the top of the
+                    scroll column so filters are always one tap away while
+                    the list scrolls. Same component as the mobile branch. */}
+                <FilterPanel
+                  activeCount={activeFilterCount}
+                  onClear={activeFilterCount > 0 ? clearFilters : undefined}
+                  className="sticky top-0 z-10"
+                >
                   {searchInput}
                   {filterChips}
                   {timelineScrub}
-                </div>
+                </FilterPanel>
 
                 <div className="flex flex-col gap-4 px-6 py-6 lg:px-10">
                   <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
@@ -423,6 +449,7 @@ export function AtlasShell({
                     hoveredSlug={hoveredSlug}
                     onSelect={handleSelect}
                     onHover={setHoveredSlug}
+                    scrollRoot={desktopListScroll}
                   />
                 </div>
               </>
