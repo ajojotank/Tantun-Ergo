@@ -32,6 +32,7 @@ type MiracleSeed = {
   summary: string
   narrativeText: string
   sources?: Array<{ label: string; url?: string; attribution?: string }>
+  videos?: Array<{ url: string; label?: string; attribution?: string }>
 }
 
 const SEEDS: MiracleSeed[] = [
@@ -53,6 +54,13 @@ const SEEDS: MiracleSeed[] = [
       {
         label: 'Sample-Lanciano archive — pamphlet',
         attribution: 'Diocese of Sample-See',
+      },
+    ],
+    videos: [
+      {
+        url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        label: 'Sample explanatory video',
+        attribution: 'Sample · replace with a real source',
       },
     ],
   },
@@ -274,6 +282,7 @@ async function ensureMiracle(
     summary: seed.summary,
     narrative: lexicalLine(seed.narrativeText),
     sources: seed.sources ?? [],
+    videos: seed.videos ?? [],
     _isSample: true,
     _status: 'published' as const,
   }
