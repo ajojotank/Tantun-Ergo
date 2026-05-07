@@ -18,8 +18,10 @@ const NAV = [
 
 export function SiteHeaderClient({
   displayName,
+  avatarUrl,
 }: {
   displayName: string | null
+  avatarUrl: string | null
 }) {
   const [open, setOpen] = useState(false)
   // Only the home page renders a full-bleed dark hero; the header floats over
@@ -75,6 +77,7 @@ export function SiteHeaderClient({
           </details>
           <HeaderAccountMenu
             displayName={displayName}
+            avatarUrl={avatarUrl}
             tone={overDark ? 'light' : 'dark'}
           />
         </nav>
@@ -97,6 +100,7 @@ export function SiteHeaderClient({
         open={open}
         onClose={() => setOpen(false)}
         displayName={displayName}
+        avatarUrl={avatarUrl}
       />
     </>
   )

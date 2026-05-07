@@ -4,6 +4,8 @@ import { AnimatePresence, motion } from 'framer-motion'
 import Link from 'next/link'
 import { useEffect } from 'react'
 
+import { Avatar } from './account/avatar'
+
 const ITEMS = [
   { href: '/atlas', label: 'Atlas', subtitle: 'Cartography of the miraculous' },
   { href: '/doctrine', label: 'Doctrine', subtitle: 'Long-form formation' },
@@ -17,10 +19,12 @@ export function MobileDrawer({
   open,
   onClose,
   displayName,
+  avatarUrl,
 }: {
   open: boolean
   onClose: () => void
   displayName: string | null
+  avatarUrl: string | null
 }) {
   useEffect(() => {
     if (!open) return
@@ -80,9 +84,16 @@ export function MobileDrawer({
             <div className="border-t border-ink/10 px-6 pt-4 pb-2">
               {displayName ? (
                 <div className="flex items-center justify-between gap-3">
-                  <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-ink-soft">
-                    {displayName}
-                  </p>
+                  <Link
+                    href="/account"
+                    onClick={onClose}
+                    className="flex min-w-0 items-center gap-3"
+                  >
+                    <Avatar imageUrl={avatarUrl} name={displayName} size={36} />
+                    <span className="min-w-0 truncate font-display text-lg italic text-ink">
+                      {displayName}
+                    </span>
+                  </Link>
                   <form action="/account/sign-out" method="post">
                     <button
                       type="submit"
