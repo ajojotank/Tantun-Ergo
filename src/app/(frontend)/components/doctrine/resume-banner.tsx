@@ -1,36 +1,35 @@
-// src/app/(frontend)/components/doctrine/resume-banner.tsx
-import Link from 'next/link'
+import Link from 'next/link';
+import {
+  formatInstructors,
+  type DoctrineCourseWire,
+  type DoctrineModuleWire,
+  type DoctrineUnitWire,
+} from './types';
 
-export function ResumeBanner({
-  unitTitle,
-  trackTitle,
-  moduleTitle,
-  href,
-}: {
-  unitTitle: string
-  trackTitle: string
-  moduleTitle: string
-  href: string
-}) {
+type Props = {
+  course: DoctrineCourseWire;
+  module: DoctrineModuleWire;
+  unit: DoctrineUnitWire;
+};
+
+export function ResumeBanner({ course, module, unit }: Props) {
+  const href = `/doctrine/${course.slug}/${module.slug}/${unit.slug}`;
   return (
     <Link
       href={href}
-      className="group mt-12 flex flex-col gap-2 rounded-2xl border border-gilt/40 bg-vellum-deep/60 px-6 py-5 transition-colors hover:border-gilt md:flex-row md:items-center md:justify-between"
+      className="block rounded-md border border-gilt/40 bg-gilt/[0.06] px-5 py-4 transition-colors hover:bg-gilt/[0.1]"
     >
-      <div>
-        <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-gilt">
-          Continue where you left off
-        </p>
-        <p className="mt-1 font-display text-2xl italic leading-tight text-ink md:text-3xl">
-          {unitTitle}
-        </p>
-        <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
-          {trackTitle} · {moduleTitle}
-        </p>
-      </div>
-      <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-ink-soft transition-colors group-hover:text-ink">
-        Resume →
-      </p>
+      <span className="block text-[11px] uppercase tracking-[0.18em] text-gilt/80">
+        Continue where you left off
+      </span>
+      <span className="mt-1 block font-display text-lg leading-tight text-ink">
+        {course.title} — {module.title}: <em className="not-italic font-normal">{unit.title}</em>
+      </span>
+      {course.instructors.length > 0 ? (
+        <span className="mt-1 block text-xs uppercase tracking-[0.18em] text-ink/55">
+          {formatInstructors(course.instructors)}
+        </span>
+      ) : null}
     </Link>
-  )
+  );
 }
