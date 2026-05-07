@@ -9,6 +9,7 @@ import { buildConfig } from 'payload'
 import sharp from 'sharp'
 
 import { Articles } from './collections/Articles'
+import { DoctrineCourses } from './collections/DoctrineCourses'
 import { DoctrineModules } from './collections/DoctrineModules'
 import { DoctrineTracks } from './collections/DoctrineTracks'
 import { DoctrineUnits } from './collections/DoctrineUnits'
@@ -127,6 +128,7 @@ export default buildConfig({
     Articles,
     Miracles,
     Pilgrimages,
+    DoctrineCourses,
     DoctrineTracks,
     DoctrineModules,
     DoctrineUnits,

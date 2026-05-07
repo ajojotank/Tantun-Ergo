@@ -74,6 +74,7 @@ export interface Config {
     articles: Article;
     miracles: Miracle;
     pilgrimages: Pilgrimage;
+    doctrineCourses: DoctrineCourse;
     'doctrine-tracks': DoctrineTrack;
     'doctrine-modules': DoctrineModule;
     'doctrine-units': DoctrineUnit;
@@ -92,6 +93,7 @@ export interface Config {
     articles: ArticlesSelect<false> | ArticlesSelect<true>;
     miracles: MiraclesSelect<false> | MiraclesSelect<true>;
     pilgrimages: PilgrimagesSelect<false> | PilgrimagesSelect<true>;
+    doctrineCourses: DoctrineCoursesSelect<false> | DoctrineCoursesSelect<true>;
     'doctrine-tracks': DoctrineTracksSelect<false> | DoctrineTracksSelect<true>;
     'doctrine-modules': DoctrineModulesSelect<false> | DoctrineModulesSelect<true>;
     'doctrine-units': DoctrineUnitsSelect<false> | DoctrineUnitsSelect<true>;
@@ -509,6 +511,151 @@ export interface Pilgrimage {
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "doctrineCourses".
+ */
+export interface DoctrineCourse {
+  id: number;
+  title: string;
+  /**
+   * URL slug. Lowercase, hyphenated.
+   */
+  slug: string;
+  /**
+   * Hero subtitle on the course landing page.
+   */
+  tagline?: string | null;
+  /**
+   * One-line description shown on the catalogue card.
+   */
+  summary?: string | null;
+  /**
+   * Body prose on the course landing page.
+   */
+  longDescription?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * 16:10 cover art for catalogue + landing.
+   */
+  coverPlate?: (number | null) | Media;
+  /**
+   * Members with the "instructor" role who author this course.
+   */
+  instructors?: (number | Member)[] | null;
+  /**
+   * Bulleted "What you'll learn" list on the landing page.
+   */
+  learnPoints?:
+    | {
+        point: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Sort order in the catalogue (lower first).
+   */
+  order?: number | null;
+  /**
+   * Marks this course as seeded sample data.
+   */
+  _isSample?: boolean | null;
+  modules?:
+    | {
+        title: string;
+        slug: string;
+        summary?: string | null;
+        units?:
+          | {
+              title: string;
+              slug: string;
+              /**
+               * Estimated reading/watching time in minutes.
+               */
+              estimatedMinutes: number;
+              introduction?: {
+                root: {
+                  type: string;
+                  children: {
+                    type: any;
+                    version: number;
+                    [k: string]: unknown;
+                  }[];
+                  direction: ('ltr' | 'rtl') | null;
+                  format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                  indent: number;
+                  version: number;
+                };
+                [k: string]: unknown;
+              } | null;
+              lanes?: {
+                reading?: {
+                  root: {
+                    type: string;
+                    children: {
+                      type: any;
+                      version: number;
+                      [k: string]: unknown;
+                    }[];
+                    direction: ('ltr' | 'rtl') | null;
+                    format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                    indent: number;
+                    version: number;
+                  };
+                  [k: string]: unknown;
+                } | null;
+                watchVideo?: (number | null) | Media;
+                listenAudio?: (number | null) | Media;
+              };
+              resources?:
+                | {
+                    label: string;
+                    description?: string | null;
+                    kind: 'download' | 'link' | 'citation';
+                    file?: (number | null) | Media;
+                    url?: string | null;
+                    citation?: string | null;
+                    /**
+                     * Optional URL to make the citation clickable.
+                     */
+                    citationUrl?: string | null;
+                    id?: string | null;
+                  }[]
+                | null;
+              masteryCheck?: {
+                prompt?: string | null;
+                options?:
+                  | {
+                      text: string;
+                      isCorrect?: boolean | null;
+                      affirmation?: string | null;
+                      id?: string | null;
+                    }[]
+                  | null;
+              };
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
  * Top-level LMS container. Each track holds an ordered set of modules. Listed at /doctrine.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -859,6 +1006,10 @@ export interface PayloadLockedDocument {
         value: number | Pilgrimage;
       } | null)
     | ({
+        relationTo: 'doctrineCourses';
+        value: number | DoctrineCourse;
+      } | null)
+    | ({
         relationTo: 'doctrine-tracks';
         value: number | DoctrineTrack;
       } | null)
@@ -1143,6 +1294,79 @@ export interface PilgrimagesSelect<T extends boolean = true> {
       };
   slug?: T;
   _isSample?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "doctrineCourses_select".
+ */
+export interface DoctrineCoursesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  tagline?: T;
+  summary?: T;
+  longDescription?: T;
+  coverPlate?: T;
+  instructors?: T;
+  learnPoints?:
+    | T
+    | {
+        point?: T;
+        id?: T;
+      };
+  order?: T;
+  _isSample?: T;
+  modules?:
+    | T
+    | {
+        title?: T;
+        slug?: T;
+        summary?: T;
+        units?:
+          | T
+          | {
+              title?: T;
+              slug?: T;
+              estimatedMinutes?: T;
+              introduction?: T;
+              lanes?:
+                | T
+                | {
+                    reading?: T;
+                    watchVideo?: T;
+                    listenAudio?: T;
+                  };
+              resources?:
+                | T
+                | {
+                    label?: T;
+                    description?: T;
+                    kind?: T;
+                    file?: T;
+                    url?: T;
+                    citation?: T;
+                    citationUrl?: T;
+                    id?: T;
+                  };
+              masteryCheck?:
+                | T
+                | {
+                    prompt?: T;
+                    options?:
+                      | T
+                      | {
+                          text?: T;
+                          isCorrect?: T;
+                          affirmation?: T;
+                          id?: T;
+                        };
+                  };
+              id?: T;
+            };
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
