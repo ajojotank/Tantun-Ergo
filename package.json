@@ -19,6 +19,7 @@
     "seed:foundation": "tsx src/scripts/seed-foundation.ts",
     "seed:atlas": "tsx src/scripts/seed-atlas.ts",
     "seed:pilgrimages": "tsx src/scripts/seed-pilgrimages.ts",
+    "seed:doctrine": "tsx src/scripts/seed-doctrine.ts",
     "migrate:media": "tsx src/scripts/migrate-media-to-supabase.ts"
   },
   "dependencies": {
