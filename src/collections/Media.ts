@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { isInstructor, isStudioAdmin } from '@/lib/access'
 
 export const Media: CollectionConfig = {
   slug: 'media',
@@ -12,6 +13,9 @@ export const Media: CollectionConfig = {
   },
   access: {
     read: () => true,
+    create: ({ req }) => isStudioAdmin(req.user) || isInstructor(req.user),
+    update: ({ req }) => isStudioAdmin(req.user) || isInstructor(req.user),
+    delete: ({ req }) => isStudioAdmin(req.user),
   },
   upload: {
     staticDir: 'media',
