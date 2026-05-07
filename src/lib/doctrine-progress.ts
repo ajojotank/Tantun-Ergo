@@ -1,115 +1,136 @@
-// src/lib/doctrine-progress.ts
-//
-// Server-only helpers for reading and upserting LmsProgress rows. The
-// collection has no native (member,unit) composite uniqueness, so we
-// emulate it here: find-then-update or create.
-import 'server-only'
+import 'server-only';
+import { getPayload, type Where } from 'payload';
+import config from '@payload-config';
+import type { LmsProgress } from '@/payload-types';
 
-import { payload } from './payload'
+export type DoctrineProgressRow = {
+  id: string;
+  unitPath: string;
+  masteryAnswer: string | null;
+  masteryCorrect: boolean;
+  completedAt: string | null;
+  lastVisitedAt: string | null;
+};
 
-import type { LmsProgress, Member } from '@/payload-types'
+function toRow(doc: LmsProgress): DoctrineProgressRow {
+  return {
+    id: String(doc.id),
+    unitPath: doc.unitPath,
+    masteryAnswer: doc.masteryAnswer ?? null,
+    masteryCorrect: Boolean(doc.masteryCorrect),
+    completedAt: doc.completedAt ?? null,
+    lastVisitedAt: doc.lastVisitedAt ?? null,
+  };
+}
+
+export async function findProgressForMember(memberId: string): Promise<DoctrineProgressRow[]> {
+  const payload = await getPayload({ config });
+  const result = await payload.find({
+    collection: 'lmsProgress',
+    where: { member: { equals: memberId } } as Where,
+    limit: 500,
+    overrideAccess: true,
+  });
+  return result.docs.map(toRow);
+}
 
 export async function findProgressForUnit(
-  memberId: number | string,
-  unitId: number | string,
-): Promise<LmsProgress | null> {
-  const p = await payload()
-  const r = await p.find({
-    collection: 'lms-progress',
+  memberId: string,
+  unitPath: string,
+): Promise<DoctrineProgressRow | null> {
+  const payload = await getPayload({ config });
+  const result = await payload.find({
+    collection: 'lmsProgress',
     where: {
       and: [
         { member: { equals: memberId } },
-        { unit: { equals: unitId } },
+        { unitPath: { equals: unitPath } },
       ],
-    },
+    } as Where,
     limit: 1,
-    depth: 0,
-  })
-  return (r.docs[0] as LmsProgress | undefined) ?? null
+    overrideAccess: true,
+  });
+  return result.docs[0] ? toRow(result.docs[0]) : null;
 }
 
-export async function findMostRecentProgress(
-  memberId: number | string,
-): Promise<LmsProgress | null> {
-  const p = await payload()
-  const r = await p.find({
-    collection: 'lms-progress',
-    where: { member: { equals: memberId } },
+export async function findMostRecentProgress(memberId: string): Promise<DoctrineProgressRow | null> {
+  const payload = await getPayload({ config });
+  const result = await payload.find({
+    collection: 'lmsProgress',
+    where: { member: { equals: memberId } } as Where,
     sort: '-lastVisitedAt',
     limit: 1,
-    depth: 3, // resolve unit → module → track for the resume banner
-  })
-  return (r.docs[0] as LmsProgress | undefined) ?? null
+    overrideAccess: true,
+  });
+  return result.docs[0] ? toRow(result.docs[0]) : null;
 }
 
-/**
- * Mark a unit as visited. Idempotent — creates a row on first call,
- * updates lastVisitedAt thereafter. Does NOT touch masteryAnswer.
- */
-export async function touchProgress(
-  member: Member,
-  unitId: number | string,
-): Promise<void> {
-  const p = await payload()
-  const existing = await findProgressForUnit(member.id, unitId)
-  const now = new Date().toISOString()
-  if (existing) {
-    await p.update({
-      collection: 'lms-progress',
-      id: existing.id,
-      data: { lastVisitedAt: now },
+async function upsertProgress(
+  memberId: string,
+  unitPath: string,
+  patch: Partial<Pick<LmsProgress, 'masteryAnswer' | 'masteryCorrect' | 'completedAt' | 'lastVisitedAt'>>,
+): Promise<DoctrineProgressRow> {
+  const payload = await getPayload({ config });
+  const existing = await payload.find({
+    collection: 'lmsProgress',
+    where: {
+      and: [{ member: { equals: memberId } }, { unitPath: { equals: unitPath } }],
+    } as Where,
+    limit: 1,
+    overrideAccess: true,
+  });
+
+  if (existing.docs[0]) {
+    const updated = await payload.update({
+      collection: 'lmsProgress',
+      id: existing.docs[0].id,
+      data: patch,
       overrideAccess: true,
-    })
-  } else {
-    await p.create({
-      collection: 'lms-progress',
-      data: {
-        member: member.id,
-        unit: unitId as number,
-        lastVisitedAt: now,
-      },
-      overrideAccess: true,
-    })
+    });
+    return toRow(updated);
   }
+
+  const created = await payload.create({
+    collection: 'lmsProgress',
+    data: {
+      member: Number(memberId),
+      unitPath,
+      ...patch,
+    },
+    overrideAccess: true,
+  });
+  return toRow(created);
 }
 
-/**
- * Save a mastery answer. The caller has already validated (a) that the
- * member is signed in and (b) that the option text matches one of the
- * unit's options. We compute correctness server-side from the unit doc,
- * never trust the client.
- */
+export async function touchProgress(memberId: string, unitPath: string): Promise<void> {
+  await upsertProgress(memberId, unitPath, { lastVisitedAt: new Date().toISOString() });
+}
+
+export async function markComplete(memberId: string, unitPath: string): Promise<void> {
+  // Idempotent: do not overwrite an existing completedAt.
+  const existing = await findProgressForUnit(memberId, unitPath);
+  if (existing?.completedAt) {
+    await upsertProgress(memberId, unitPath, { lastVisitedAt: new Date().toISOString() });
+    return;
+  }
+  const now = new Date().toISOString();
+  await upsertProgress(memberId, unitPath, { completedAt: now, lastVisitedAt: now });
+}
+
 export async function saveMasteryAnswer(
-  member: Member,
-  unitId: number | string,
-  answerText: string,
+  memberId: string,
+  unitPath: string,
+  answer: string,
   isCorrect: boolean,
 ): Promise<void> {
-  const p = await payload()
-  const existing = await findProgressForUnit(member.id, unitId)
-  const now = new Date().toISOString()
-  if (existing) {
-    await p.update({
-      collection: 'lms-progress',
-      id: existing.id,
-      data: {
-        masteryAnswer: answerText,
-        masteryCorrect: isCorrect,
-        lastVisitedAt: now,
-      },
-      overrideAccess: true,
-    })
-  } else {
-    await p.create({
-      collection: 'lms-progress',
-      data: {
-        member: member.id,
-        unit: unitId as number,
-        masteryAnswer: answerText,
-        masteryCorrect: isCorrect,
-        lastVisitedAt: now,
-      },
-      overrideAccess: true,
-    })
+  const patch: Partial<Pick<LmsProgress, 'masteryAnswer' | 'masteryCorrect' | 'completedAt' | 'lastVisitedAt'>> = {
+    masteryAnswer: answer,
+    masteryCorrect: isCorrect,
+    lastVisitedAt: new Date().toISOString(),
+  };
+  if (isCorrect) {
+    const existing = await findProgressForUnit(memberId, unitPath);
+    if (!existing?.completedAt) patch.completedAt = new Date().toISOString();
   }
+  await upsertProgress(memberId, unitPath, patch);
 }
