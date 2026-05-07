@@ -1,5 +1,12 @@
-import type { CollectionConfig, Validate } from 'payload';
-import type { Member } from '../payload-types';
+import type { CollectionConfig, PayloadRequest, Validate } from 'payload';
+
+/** Returns true when the authenticated user holds admin rights in either auth collection. */
+function isStudioAdmin(user: PayloadRequest['user']): boolean {
+  if (!user) return false;
+  if (user.collection === 'users') return user.role === 'admin';
+  if (user.collection === 'members') return user.roles.includes('admin');
+  return false;
+}
 
 const validateModuleSlug: Validate<string> = (value, { siblingData: _siblingData, data }) => {
   if (typeof value !== 'string' || value.length === 0) return 'Slug is required';
@@ -42,18 +49,9 @@ export const DoctrineCourses: CollectionConfig = {
   access: {
     // Phase E will replace these with the full per-role matrix.
     read: () => true,
-    create: ({ req }) => {
-      const user = req.user as Member | null | undefined;
-      return user?.roles?.includes('admin') ?? false;
-    },
-    update: ({ req }) => {
-      const user = req.user as Member | null | undefined;
-      return user?.roles?.includes('admin') ?? false;
-    },
-    delete: ({ req }) => {
-      const user = req.user as Member | null | undefined;
-      return user?.roles?.includes('admin') ?? false;
-    },
+    create: ({ req }) => isStudioAdmin(req.user),
+    update: ({ req }) => isStudioAdmin(req.user),
+    delete: ({ req }) => isStudioAdmin(req.user),
   },
   fields: [
     {
