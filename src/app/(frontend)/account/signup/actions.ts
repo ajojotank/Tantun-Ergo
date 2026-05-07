@@ -34,6 +34,7 @@ export async function signUpAction(
         email,
         password,
         displayName: displayName || undefined,
+        roles: ['learner'],
       },
     })
     return { error: null, success: true }

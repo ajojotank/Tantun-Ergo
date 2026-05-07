@@ -216,6 +216,10 @@ export interface Member {
    * Optional profile image. Renders as a 32px circle in the header and 64px on /account. Members upload via the /account page; admins can override via the studio.
    */
   avatar?: (number | null) | Media;
+  /**
+   * Admins have full studio access. Instructors can author DoctrineCourses they own. Learners read the public site only.
+   */
+  roles: ('admin' | 'instructor' | 'learner')[];
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -954,6 +958,7 @@ export interface UsersSelect<T extends boolean = true> {
 export interface MembersSelect<T extends boolean = true> {
   displayName?: T;
   avatar?: T;
+  roles?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;

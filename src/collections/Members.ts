@@ -93,5 +93,30 @@ export const Members: CollectionConfig = {
           'Optional profile image. Renders as a 32px circle in the header and 64px on /account. Members upload via the /account page; admins can override via the studio.',
       },
     },
+    {
+      name: 'roles',
+      type: 'select',
+      hasMany: true,
+      required: true,
+      defaultValue: ['learner'],
+      options: [
+        { label: 'Admin', value: 'admin' },
+        { label: 'Instructor', value: 'instructor' },
+        { label: 'Learner', value: 'learner' },
+      ],
+      saveToJWT: true,
+      access: {
+        update: ({ req }) => {
+          const user = req.user
+          if (!user) return false
+          if (user.collection === 'members') return user.roles?.includes('admin') ?? false
+          return false
+        },
+      },
+      admin: {
+        description:
+          'Admins have full studio access. Instructors can author DoctrineCourses they own. Learners read the public site only.',
+      },
+    },
   ],
 }
