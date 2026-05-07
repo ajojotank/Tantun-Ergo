@@ -78,7 +78,7 @@ export interface Config {
     'doctrine-tracks': DoctrineTrack;
     'doctrine-modules': DoctrineModule;
     'doctrine-units': DoctrineUnit;
-    'lms-progress': LmsProgress;
+    lmsProgress: LmsProgress;
     'payload-kv': PayloadKv;
     'payload-jobs': PayloadJob;
     'payload-locked-documents': PayloadLockedDocument;
@@ -97,7 +97,7 @@ export interface Config {
     'doctrine-tracks': DoctrineTracksSelect<false> | DoctrineTracksSelect<true>;
     'doctrine-modules': DoctrineModulesSelect<false> | DoctrineModulesSelect<true>;
     'doctrine-units': DoctrineUnitsSelect<false> | DoctrineUnitsSelect<true>;
-    'lms-progress': LmsProgressSelect<false> | LmsProgressSelect<true>;
+    lmsProgress: LmsProgressSelect<false> | LmsProgressSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -841,27 +841,26 @@ export interface DoctrineUnit {
   _status?: ('draft' | 'published') | null;
 }
 /**
- * Per-member, per-unit progress for the Doctrine LMS. One row per (member, unit) pair — upserted by the unit player. Read-only from the studio for non-admins.
- *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "lms-progress".
+ * via the `definition` "lmsProgress".
  */
 export interface LmsProgress {
   id: number;
   member: number | Member;
-  unit: number | DoctrineUnit;
   /**
-   * The text of the option the member selected. Null if they skipped.
+   * {courseSlug}/{moduleSlug}/{unitSlug}
+   */
+  unitPath: string;
+  /**
+   * The text of the option the member selected.
    */
   masteryAnswer?: string | null;
-  /**
-   * Set when the member submits the mastery check. Computed server-side against the unit's correct option.
-   */
   masteryCorrect?: boolean | null;
   /**
-   * Updated every time the member loads the unit player or saves the mastery check. Powers the resume banner.
+   * Set on first mark-complete event; idempotent thereafter.
    */
-  lastVisitedAt: string;
+  completedAt?: string | null;
+  lastVisitedAt?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1022,7 +1021,7 @@ export interface PayloadLockedDocument {
         value: number | DoctrineUnit;
       } | null)
     | ({
-        relationTo: 'lms-progress';
+        relationTo: 'lmsProgress';
         value: number | LmsProgress;
       } | null);
   globalSlug?: string | null;
@@ -1459,13 +1458,14 @@ export interface DoctrineUnitsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "lms-progress_select".
+ * via the `definition` "lmsProgress_select".
  */
 export interface LmsProgressSelect<T extends boolean = true> {
   member?: T;
-  unit?: T;
+  unitPath?: T;
   masteryAnswer?: T;
   masteryCorrect?: T;
+  completedAt?: T;
   lastVisitedAt?: T;
   updatedAt?: T;
   createdAt?: T;

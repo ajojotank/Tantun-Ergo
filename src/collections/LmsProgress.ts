@@ -1,38 +1,26 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, PayloadRequest } from 'payload';
+
+/** Returns true when the authenticated user holds admin rights in either auth collection. */
+function isStudioAdmin(user: PayloadRequest['user']): boolean {
+  if (!user) return false;
+  if (user.collection === 'users') return user.role === 'admin';
+  if (user.collection === 'members') return user.roles.includes('admin');
+  return false;
+}
 
 export const LmsProgress: CollectionConfig = {
-  slug: 'lms-progress',
-  labels: { singular: 'LMS Progress', plural: 'LMS Progress' },
+  slug: 'lmsProgress',
   admin: {
-    useAsTitle: 'id',
-    defaultColumns: ['member', 'unit', 'masteryCorrect', 'lastVisitedAt'],
-    description:
-      'Per-member, per-unit progress for the Doctrine LMS. One row per (member, unit) pair — upserted by the unit player. Read-only from the studio for non-admins.',
-    // Hide from non-admins to keep the studio focused on editorial tools.
-    hidden: ({ user }) =>
-      !(user && user.collection === 'users' && user.role === 'admin'),
+    useAsTitle: 'unitPath',
+    defaultColumns: ['member', 'unitPath', 'completedAt', 'lastVisitedAt'],
+    group: 'Doctrine',
   },
+  // Phase E will replace these with the full matrix.
   access: {
-    read: ({ req }) => {
-      if (!req.user) return false
-      if (req.user.collection === 'users') return true
-      // Members read only their own rows.
-      return { member: { equals: req.user.id } }
-    },
-    create: ({ req }) =>
-      Boolean(req.user && req.user.collection === 'members'),
-    update: ({ req }) => {
-      if (!req.user) return false
-      if (req.user.collection === 'users' && req.user.role === 'admin') return true
-      if (req.user.collection === 'members') {
-        return { member: { equals: req.user.id } }
-      }
-      return false
-    },
-    delete: ({ req }) =>
-      Boolean(
-        req.user && req.user.collection === 'users' && req.user.role === 'admin',
-      ),
+    read: ({ req }) => isStudioAdmin(req.user),
+    create: ({ req }) => isStudioAdmin(req.user),
+    update: ({ req }) => isStudioAdmin(req.user),
+    delete: ({ req }) => isStudioAdmin(req.user),
   },
   fields: [
     {
@@ -40,41 +28,32 @@ export const LmsProgress: CollectionConfig = {
       type: 'relationship',
       relationTo: 'members',
       required: true,
-      hasMany: false,
       index: true,
     },
     {
-      name: 'unit',
-      type: 'relationship',
-      relationTo: 'doctrine-units',
+      name: 'unitPath',
+      type: 'text',
       required: true,
-      hasMany: false,
       index: true,
+      admin: { description: '{courseSlug}/{moduleSlug}/{unitSlug}' },
     },
     {
       name: 'masteryAnswer',
       type: 'text',
-      admin: {
-        description: 'The text of the option the member selected. Null if they skipped.',
-      },
+      admin: { description: 'The text of the option the member selected.' },
     },
+    { name: 'masteryCorrect', type: 'checkbox' },
     {
-      name: 'masteryCorrect',
-      type: 'checkbox',
-      defaultValue: false,
-      admin: {
-        description:
-          'Set when the member submits the mastery check. Computed server-side against the unit\'s correct option.',
-      },
-    },
-    {
-      name: 'lastVisitedAt',
+      name: 'completedAt',
       type: 'date',
-      required: true,
-      admin: {
-        description:
-          'Updated every time the member loads the unit player or saves the mastery check. Powers the resume banner.',
-      },
+      admin: { description: 'Set on first mark-complete event; idempotent thereafter.' },
+    },
+    { name: 'lastVisitedAt', type: 'date' },
+  ],
+  indexes: [
+    {
+      fields: ['member', 'unitPath'],
+      unique: true,
     },
   ],
-}
+};
