@@ -212,6 +212,10 @@ export interface Member {
    * Optional display name shown in the header dropdown. Falls back to the email local-part when empty.
    */
   displayName?: string | null;
+  /**
+   * Optional profile image. Renders as a 32px circle in the header and 64px on /account. Members upload via the /account page; admins can override via the studio.
+   */
+  avatar?: (number | null) | Media;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -949,6 +953,7 @@ export interface UsersSelect<T extends boolean = true> {
  */
 export interface MembersSelect<T extends boolean = true> {
   displayName?: T;
+  avatar?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;

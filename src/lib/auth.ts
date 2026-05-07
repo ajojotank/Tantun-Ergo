@@ -27,7 +27,16 @@ export async function getMember(): Promise<Member | null> {
     const result = await p.auth({ headers: await headers() })
     if (!result?.user) return null
     if (result.user.collection !== 'members') return null
-    return result.user as Member
+    // payload.auth() doesn't honor a depth parameter, so the avatar
+    // relationship comes back as a numeric ID. Re-read at depth 1 so the
+    // header/account UI gets a hydrated avatar Media doc.
+    const hydrated = await p.findByID({
+      collection: 'members',
+      id: result.user.id,
+      depth: 1,
+      overrideAccess: true,
+    })
+    return hydrated as Member
   } catch {
     // payload.auth throws on malformed JWTs / expired tokens. Treat any
     // failure as "no session" and let the caller redirect to signin.
@@ -55,4 +64,17 @@ export async function requireMember(currentPath: string): Promise<Member> {
 export function memberDisplayName(member: Member): string {
   if (member.displayName?.trim()) return member.displayName
   return member.email.split('@')[0] ?? member.email
+}
+
+/**
+ * Resolve a member's avatar URL. Returns null when no avatar is set or the
+ * relationship hasn't been hydrated (depth too shallow). Treats unhydrated
+ * IDs as null rather than guessing — the caller can fall back to initials.
+ */
+export function memberAvatarUrl(member: Member): string | null {
+  const a = member.avatar
+  if (!a) return null
+  if (typeof a !== 'object') return null
+  const url = (a as { url?: string }).url
+  return typeof url === 'string' && url ? url : null
 }

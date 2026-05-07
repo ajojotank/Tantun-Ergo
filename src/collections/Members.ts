@@ -84,5 +84,14 @@ export const Members: CollectionConfig = {
           'Optional display name shown in the header dropdown. Falls back to the email local-part when empty.',
       },
     },
+    {
+      name: 'avatar',
+      type: 'upload',
+      relationTo: 'media',
+      admin: {
+        description:
+          'Optional profile image. Renders as a 32px circle in the header and 64px on /account. Members upload via the /account page; admins can override via the studio.',
+      },
+    },
   ],
 }
