@@ -4,11 +4,19 @@ import { motion } from 'framer-motion'
 import { useActionState, useState } from 'react'
 
 import {
-  INITIAL_MASTERY,
   saveMasteryAction,
   type MasteryState,
 } from '../../doctrine/[track]/[module]/[unit]/actions'
 import type { DoctrineMasteryOption } from './types'
+
+// Lives client-side: a `'use server'` module can only export async functions.
+const INITIAL_MASTERY: MasteryState = {
+  status: 'idle',
+  affirmation: null,
+  isCorrect: false,
+  error: null,
+  selected: null,
+}
 
 export function MasteryCheck({
   unitId,

@@ -14,8 +14,8 @@ export type PasswordState = {
   error: string | null
 }
 
-export const INITIAL_PROFILE: ProfileState = { status: 'idle', error: null }
-export const INITIAL_PASSWORD: PasswordState = { status: 'idle', error: null }
+// INITIAL_PROFILE / INITIAL_PASSWORD live in forms.tsx — Next 16 forbids
+// non-async exports from `'use server'` modules.
 
 const MAX_AVATAR_BYTES = 5 * 1024 * 1024 // 5 MB
 const ALLOWED_AVATAR_TYPES = new Set([

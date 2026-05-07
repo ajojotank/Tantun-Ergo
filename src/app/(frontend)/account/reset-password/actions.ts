@@ -9,7 +9,7 @@ export type ResetPasswordState = {
   error: string | null
 }
 
-export const INITIAL: ResetPasswordState = { error: null }
+// INITIAL lives in page.tsx — `'use server'` modules can only export async functions.
 
 export async function resetPasswordAction(
   _prev: ResetPasswordState,

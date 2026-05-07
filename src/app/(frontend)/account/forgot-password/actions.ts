@@ -7,7 +7,7 @@ export type ForgotPasswordState = {
   error: string | null
 }
 
-export const INITIAL: ForgotPasswordState = { status: 'idle', error: null }
+// INITIAL lives in page.tsx — `'use server'` modules can only export async functions.
 
 export async function forgotPasswordAction(
   _prev: ForgotPasswordState,

@@ -13,13 +13,10 @@ export type MasteryState = {
   selected: string | null
 }
 
-export const INITIAL_MASTERY: MasteryState = {
-  status: 'idle',
-  affirmation: null,
-  isCorrect: false,
-  error: null,
-  selected: null,
-}
+// Note: the INITIAL_MASTERY constant lives in the client component
+// (mastery-check.tsx). Next 16 forbids non-async exports from `'use server'`
+// modules — exporting an object would crash at runtime when the client
+// boundary tries to serialise it.
 
 export async function saveMasteryAction(
   _prev: MasteryState,
@@ -28,17 +25,20 @@ export async function saveMasteryAction(
   const unitId = String(formData.get('unitId') ?? '')
   const optionText = String(formData.get('option') ?? '')
 
+  const errorBase = {
+    status: 'error' as const,
+    affirmation: null,
+    isCorrect: false,
+    selected: null as string | null,
+  }
+
   if (!unitId || !optionText) {
-    return { ...INITIAL_MASTERY, status: 'error', error: 'Missing data.' }
+    return { ...errorBase, error: 'Missing data.' }
   }
 
   const member = await getMember()
   if (!member) {
-    return {
-      ...INITIAL_MASTERY,
-      status: 'error',
-      error: 'Sign in to save your answer.',
-    }
+    return { ...errorBase, error: 'Sign in to save your answer.' }
   }
 
   // Refetch the unit doc and find the option by text. We trust the doc,
@@ -52,7 +52,7 @@ export async function saveMasteryAction(
       depth: 0,
     })
   } catch {
-    return { ...INITIAL_MASTERY, status: 'error', error: 'Unit not found.' }
+    return { ...errorBase, error: 'Unit not found.' }
   }
 
   const masteryRaw =
@@ -67,8 +67,7 @@ export async function saveMasteryAction(
 
   if (!matched) {
     return {
-      ...INITIAL_MASTERY,
-      status: 'error',
+      ...errorBase,
       error: 'That option is no longer available.',
       selected: optionText,
     }

@@ -5,7 +5,10 @@ import { useSearchParams } from 'next/navigation'
 import { Suspense, useActionState } from 'react'
 
 import { AuthShell } from '../../components/account/auth-shell'
-import { resetPasswordAction, INITIAL, type ResetPasswordState } from './actions'
+import { resetPasswordAction, type ResetPasswordState } from './actions'
+
+// Lives client-side: `'use server'` modules can only export async functions.
+const INITIAL: ResetPasswordState = { error: null }
 
 export default function ResetPasswordPage() {
   return (

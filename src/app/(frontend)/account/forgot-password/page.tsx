@@ -4,7 +4,10 @@ import Link from 'next/link'
 import { useActionState } from 'react'
 
 import { AuthShell } from '../../components/account/auth-shell'
-import { forgotPasswordAction, INITIAL, type ForgotPasswordState } from './actions'
+import { forgotPasswordAction, type ForgotPasswordState } from './actions'
+
+// Lives client-side: `'use server'` modules can only export async functions.
+const INITIAL: ForgotPasswordState = { status: 'idle', error: null }
 
 export default function ForgotPasswordPage() {
   const [state, action, pending] = useActionState<ForgotPasswordState, FormData>(

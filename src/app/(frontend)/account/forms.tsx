@@ -6,12 +6,14 @@ import { Avatar } from '../components/account/avatar'
 
 import {
   changePasswordAction,
-  INITIAL_PASSWORD,
-  INITIAL_PROFILE,
   updateProfileAction,
   type PasswordState,
   type ProfileState,
 } from './actions'
+
+// Live client-side: `'use server'` modules can only export async functions.
+const INITIAL_PROFILE: ProfileState = { status: 'idle', error: null }
+const INITIAL_PASSWORD: PasswordState = { status: 'idle', error: null }
 
 export function AccountForms({
   displayName: initialDisplayName,
