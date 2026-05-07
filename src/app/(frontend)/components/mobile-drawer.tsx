@@ -1,4 +1,3 @@
-// src/app/(frontend)/_components/mobile-drawer.tsx
 'use client'
 
 import { AnimatePresence, motion } from 'framer-motion'
@@ -14,7 +13,15 @@ const ITEMS = [
   { href: '/credits', label: 'Credits', subtitle: 'Sources & review' },
 ] as const
 
-export function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function MobileDrawer({
+  open,
+  onClose,
+  displayName,
+}: {
+  open: boolean
+  onClose: () => void
+  displayName: string | null
+}) {
   useEffect(() => {
     if (!open) return
     const prev = document.body.style.overflow
@@ -57,11 +64,7 @@ export function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => 
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.18 + i * 0.05, type: 'spring', stiffness: 110, damping: 22 }}
                   >
-                    <Link
-                      href={item.href}
-                      onClick={onClose}
-                      className="group block"
-                    >
+                    <Link href={item.href} onClick={onClose} className="group block">
                       <p className="font-display text-3xl italic leading-none text-ink">
                         {item.label}
                       </p>
@@ -73,6 +76,33 @@ export function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => 
                 ))}
               </ul>
             </nav>
+
+            <div className="border-t border-ink/10 px-6 pt-4 pb-2">
+              {displayName ? (
+                <div className="flex items-center justify-between gap-3">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-ink-soft">
+                    {displayName}
+                  </p>
+                  <form action="/account/sign-out" method="post">
+                    <button
+                      type="submit"
+                      className="font-mono text-[11px] uppercase tracking-[0.22em] text-ink underline-offset-4 hover:underline"
+                    >
+                      Sign out
+                    </button>
+                  </form>
+                </div>
+              ) : (
+                <Link
+                  href="/account/signin"
+                  onClick={onClose}
+                  className="block font-mono text-[11px] uppercase tracking-[0.22em] text-ink underline-offset-4 hover:underline"
+                >
+                  Sign in →
+                </Link>
+              )}
+            </div>
+
             <p className="px-6 pb-8 text-center font-display text-sm italic text-ink-soft">
               Genitori, Genitoque · laus et jubilatio.
             </p>
