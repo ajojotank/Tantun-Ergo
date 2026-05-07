@@ -10,9 +10,6 @@ import sharp from 'sharp'
 
 import { Articles } from './collections/Articles'
 import { DoctrineCourses } from './collections/DoctrineCourses'
-import { DoctrineModules } from './collections/DoctrineModules'
-import { DoctrineTracks } from './collections/DoctrineTracks'
-import { DoctrineUnits } from './collections/DoctrineUnits'
 import { LmsProgress } from './collections/LmsProgress'
 import { Media } from './collections/Media'
 import { Members } from './collections/Members'
@@ -129,9 +126,6 @@ export default buildConfig({
     Miracles,
     Pilgrimages,
     DoctrineCourses,
-    DoctrineTracks,
-    DoctrineModules,
-    DoctrineUnits,
     LmsProgress,
   ],
   globals: [Settings, HomePage, ManifestoPage, CreditsPage],
