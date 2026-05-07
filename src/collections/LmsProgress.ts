@@ -7,9 +7,23 @@ export const LmsProgress: CollectionConfig = {
     useAsTitle: 'unitPath',
     defaultColumns: ['member', 'unitPath', 'completedAt', 'lastVisitedAt'],
     group: 'Doctrine',
+    hidden: ({ user }) => {
+      if (!user) return true;
+      if (user.collection === 'users') return user.role !== 'admin';
+      if (user.collection === 'members') return !user.roles.includes('admin');
+      return true;
+    },
   },
   access: {
-    read: ({ req }) => isStudioAdmin(req.user),
+    read: ({ req }) => {
+      const user = req.user;
+      if (!user) return false;
+      if (isStudioAdmin(user)) return true;
+      if (user.collection === 'members') {
+        return { member: { equals: user.id } };
+      }
+      return false;
+    },
     create: ({ req }) => isStudioAdmin(req.user),
     update: ({ req }) => isStudioAdmin(req.user),
     delete: ({ req }) => isStudioAdmin(req.user),
