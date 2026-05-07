@@ -20,6 +20,12 @@ export const Miracles: CollectionConfig = {
         return `${SERVER_URL}/next/preview?${params.toString()}`
       },
     },
+    hidden: ({ user }) => {
+      if (!user) return true
+      if (user.collection === 'users') return user.role !== 'admin'
+      if (user.collection === 'members') return !user.roles.includes('admin')
+      return true
+    },
   },
   access: {
     read: ({ req }) => {

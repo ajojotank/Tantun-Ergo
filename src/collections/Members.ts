@@ -10,6 +10,12 @@ export const Members: CollectionConfig = {
     defaultColumns: ['displayName', 'email', '_verified', 'updatedAt'],
     description:
       'End-user accounts for the Doctrine LMS. Read access from the studio is admin-only — members cannot themselves access /admin.',
+    hidden: ({ user }) => {
+      if (!user) return true
+      if (user.collection === 'users') return user.role !== 'admin'
+      if (user.collection === 'members') return !user.roles.includes('admin')
+      return true
+    },
   },
   auth: {
     tokenExpiration: 60 * 60 * 24 * 30, // 30 days
