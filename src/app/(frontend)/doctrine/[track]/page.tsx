@@ -3,11 +3,13 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
-import { ModuleFolio } from '../../components/doctrine/module-folio'
+import { DoctrineOutline } from '../../components/doctrine/doctrine-outline'
+import { ProgressMeter } from '../../components/doctrine/progress-meter'
+import { getMember } from '@/lib/auth'
 import {
-  toModuleSummary,
-  toTrackSummary,
-} from '../../components/doctrine/serialise'
+  firstUnitHref,
+  getTrackOutline,
+} from '@/lib/doctrine-outline'
 import { payload } from '@/lib/payload'
 
 export const dynamic = 'force-dynamic'
@@ -40,58 +42,22 @@ export default async function DoctrineTrackPage({
   params: Params
 }) {
   const { track: trackSlug } = await params
-  const p = await payload()
-
-  const trackResult = await p.find({
-    collection: 'doctrine-tracks',
-    where: { slug: { equals: trackSlug }, _status: { equals: 'published' } },
-    limit: 1,
-    depth: 1,
+  const member = await getMember()
+  const outline = await getTrackOutline(trackSlug, {
+    memberId: member?.id,
   })
-  const trackDoc = trackResult.docs[0]
-  if (!trackDoc) notFound()
-  const track = toTrackSummary(trackDoc)
+  if (!outline) notFound()
 
-  const modulesResult = await p.find({
-    collection: 'doctrine-modules',
-    where: {
-      track: { equals: trackDoc.id },
-      _status: { equals: 'published' },
-    },
-    limit: 100,
-    sort: ['order', 'title'],
-    depth: 1,
-  })
-
-  // Unit counts per module.
-  const moduleIds = modulesResult.docs.map((m) => m.id)
-  const unitsResult =
-    moduleIds.length > 0
-      ? await p.find({
-          collection: 'doctrine-units',
-          where: {
-            module: { in: moduleIds },
-            _status: { equals: 'published' },
-          },
-          limit: 500,
-          depth: 0,
-        })
-      : { docs: [] as Array<{ module: number | { id: number } }> }
-  const countsByModule = new Map<number, number>()
-  for (const u of unitsResult.docs) {
-    const moduleId =
-      typeof u.module === 'object' && u.module !== null
-        ? Number((u.module as { id: number }).id)
-        : Number(u.module)
-    countsByModule.set(moduleId, (countsByModule.get(moduleId) ?? 0) + 1)
-  }
-
-  const modules = modulesResult.docs.map((m) =>
-    toModuleSummary(m, countsByModule.get(m.id as number) ?? 0),
-  )
+  const beginHref = firstUnitHref(outline)
+  const ctaHref = outline.resumeHref ?? beginHref
+  const ctaLabel = outline.resumeHref ? 'Continue reading' : 'Begin reading'
+  const ctaSubLabel = outline.resumeTitle
+    ? `Resume · ${outline.resumeTitle}`
+    : null
+  const hasUnits = outline.totalUnits > 0
 
   return (
-    <main className="mx-auto w-full max-w-3xl px-5 py-16 sm:px-8 md:py-28">
+    <main className="mx-auto w-full max-w-5xl px-5 py-12 sm:px-8 md:py-20">
       <Link
         href="/doctrine"
         className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.22em] text-ink-soft transition-colors hover:text-ink"
@@ -100,45 +66,98 @@ export default async function DoctrineTrackPage({
         All tracks
       </Link>
 
-      {track.coverPlate ? (
-        <div className="relative mt-8 aspect-[16/10] w-full overflow-hidden rounded-2xl border border-ink/10 bg-parchment">
-          <Image
-            src={track.coverPlate.url}
-            alt={track.coverPlate.alt || track.title}
-            fill
-            sizes="(min-width: 768px) 720px, 100vw"
-            className="object-cover"
-            unoptimized={track.coverPlate.url.startsWith('/api/')}
-            priority
-          />
+      {/* Course-landing hero — cover on the right (md+), title block on the left. */}
+      <section
+        aria-label="Track header"
+        className="mt-8 grid gap-10 md:grid-cols-[1.2fr_1fr] md:items-center"
+      >
+        <div>
+          <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-rubric">
+            Doctrine track{outline.isSample ? ' · [Sample]' : ''}
+          </p>
+          <h1 className="mt-3 font-display text-5xl italic leading-tight tracking-tight text-ink md:text-6xl">
+            {outline.title}
+          </h1>
+          {outline.summary ? (
+            <p className="mt-5 max-w-[55ch] text-lg leading-relaxed text-ink-soft">
+              {outline.summary}
+            </p>
+          ) : null}
+
+          <p className="mt-6 font-mono text-[10px] uppercase tracking-[0.24em] text-ink-soft">
+            {outline.modules.length}{' '}
+            {outline.modules.length === 1 ? 'module' : 'modules'} ·{' '}
+            {outline.totalUnits}{' '}
+            {outline.totalUnits === 1 ? 'unit' : 'units'}
+          </p>
+
+          {member ? (
+            <ProgressMeter
+              completed={outline.completedUnits}
+              total={outline.totalUnits}
+              className="mt-6 max-w-md"
+            />
+          ) : null}
+
+          {hasUnits ? (
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <Link
+                href={ctaHref}
+                className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 font-mono text-[11px] uppercase tracking-[0.22em] text-vellum transition-colors hover:bg-ink-soft"
+              >
+                {ctaLabel}
+                <span aria-hidden>→</span>
+              </Link>
+              {ctaSubLabel ? (
+                <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
+                  {ctaSubLabel}
+                </span>
+              ) : null}
+            </div>
+          ) : null}
         </div>
-      ) : null}
 
-      <p className="mt-10 font-mono text-[11px] uppercase tracking-[0.28em] text-rubric">
-        Doctrine track{track.isSample ? ' · [Sample]' : ''}
-      </p>
-      <h1 className="mt-3 font-display text-5xl italic leading-tight tracking-tight text-ink md:text-6xl">
-        {track.title}
-      </h1>
-      {track.summary ? (
-        <p className="mt-6 max-w-[58ch] text-lg leading-relaxed text-ink-soft">
-          {track.summary}
-        </p>
-      ) : null}
+        {outline.coverPlate ? (
+          <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl border border-ink/10 bg-parchment shadow-altar md:max-w-sm md:justify-self-end">
+            <Image
+              src={outline.coverPlate.url}
+              alt={outline.coverPlate.alt || outline.title}
+              fill
+              sizes="(min-width: 768px) 380px, 100vw"
+              className="object-cover"
+              unoptimized={outline.coverPlate.url.startsWith('/api/')}
+              priority
+            />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-x-6 top-6 h-px bg-gradient-to-r from-transparent via-gilt/70 to-transparent"
+            />
+          </div>
+        ) : null}
+      </section>
 
-      {modules.length === 0 ? (
-        <p className="mt-16 font-display text-2xl italic text-ink-soft">
-          This track has no modules yet.
+      {/* Course outline — modules with units listed inline. */}
+      <section
+        aria-label="Course outline"
+        className="mt-16 border-t border-ink/10 pt-10"
+      >
+        <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-rubric">
+          Course outline
         </p>
-      ) : (
-        <ul className="mt-12 divide-y divide-ink/10">
-          {modules.map((m, i) => (
-            <li key={m.id}>
-              <ModuleFolio module={m} index={i} />
-            </li>
-          ))}
-        </ul>
-      )}
+        <h2 className="mt-2 font-display text-3xl italic leading-snug text-ink md:text-4xl">
+          What you&apos;ll walk through.
+        </h2>
+
+        <div className="mt-10">
+          {outline.modules.length === 0 ? (
+            <p className="font-display text-2xl italic text-ink-soft">
+              This track has no modules yet.
+            </p>
+          ) : (
+            <DoctrineOutline outline={outline} variant="inline" />
+          )}
+        </div>
+      </section>
     </main>
   )
 }

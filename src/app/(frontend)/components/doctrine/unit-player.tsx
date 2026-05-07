@@ -9,16 +9,25 @@ import { LaneSwitcher, type LaneId } from './lane-switcher'
 import { MasteryCheck } from './mastery-check'
 import { romanizeLower, type DoctrineUnitFull } from './types'
 
+/**
+ * Reading column for the unit player. Renders the breadcrumb, folio header,
+ * lane switcher, content lanes, mastery check, and the prev/next footer.
+ *
+ * Does NOT own the outer <main> tag — the server page wraps this in a 2-col
+ * layout alongside the course-outline sidebar.
+ */
 export function UnitPlayer({
   unit,
   positionInModule,
   totalInModule,
+  prevHref,
   nextHref,
   previousAnswer,
 }: {
   unit: DoctrineUnitFull
   positionInModule: number
   totalInModule: number
+  prevHref: string | null
   nextHref: string | null
   previousAnswer: string | null
 }) {
@@ -34,16 +43,8 @@ export function UnitPlayer({
     Boolean(unit.masteryPrompt) && unit.masteryOptions.length > 0
 
   return (
-    <main className="mx-auto w-full max-w-3xl px-5 py-12 sm:px-8 md:py-20">
-      <Link
-        href={`/doctrine/${unit.trackSlug}/${unit.moduleSlug}`}
-        className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.22em] text-ink-soft transition-colors hover:text-ink"
-      >
-        <span aria-hidden>←</span>
-        Module
-      </Link>
-
-      <p className="mt-8 font-display text-base italic leading-snug text-ink-soft">
+    <article className="w-full">
+      <p className="font-display text-base italic leading-snug text-ink-soft">
         <Link
           href={`/doctrine/${unit.trackSlug}`}
           className="underline-offset-4 hover:underline"
@@ -100,11 +101,7 @@ export function UnitPlayer({
         ) : null}
 
         {active === 'listen' && unit.listenAudioUrl ? (
-          <audio
-            src={unit.listenAudioUrl}
-            controls
-            className="w-full"
-          >
+          <audio src={unit.listenAudioUrl} controls className="w-full">
             Your browser does not support embedded audio.
           </audio>
         ) : null}
@@ -121,8 +118,31 @@ export function UnitPlayer({
         </div>
       ) : null}
 
-      <div className="mt-16 flex flex-wrap items-center justify-between gap-4 border-t border-ink/10 pt-6">
-        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
+      {/* Persistent prev/next footer — visible on every unit, not just the
+          last one. Folio counter sits between them on desktop, on top on
+          mobile. The "Previous folio" link is dimmed when there's no prev. */}
+      <nav
+        aria-label="Folio navigation"
+        className="mt-16 flex flex-col gap-4 border-t border-ink/10 pt-6 md:flex-row md:items-center md:justify-between"
+      >
+        {prevHref ? (
+          <Link
+            href={prevHref}
+            className="inline-flex items-center gap-2 rounded-full border border-ink/15 bg-vellum px-4 py-2 font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft transition-colors hover:border-ink/30 hover:text-ink"
+          >
+            <span aria-hidden>←</span>
+            Previous folio
+          </Link>
+        ) : (
+          <span
+            aria-hidden
+            className="inline-flex cursor-not-allowed items-center gap-2 rounded-full border border-ink/10 bg-vellum px-4 py-2 font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft/60"
+          >
+            <span aria-hidden>←</span>
+            Previous folio
+          </span>
+        )}
+        <p className="order-first font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft md:order-none">
           Folio {folioNumber}. of {folioTotal}.
         </p>
         {nextHref ? (
@@ -142,7 +162,7 @@ export function UnitPlayer({
             <span aria-hidden>→</span>
           </Link>
         )}
-      </div>
-    </main>
+      </nav>
+    </article>
   )
 }
