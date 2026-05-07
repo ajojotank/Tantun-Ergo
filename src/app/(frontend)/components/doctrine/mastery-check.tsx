@@ -1,118 +1,80 @@
-'use client'
+'use client';
 
-import { motion } from 'framer-motion'
-import { useActionState, useState } from 'react'
+import { useState, useTransition } from 'react';
+import { saveMasteryAction } from '@/app/(frontend)/doctrine/[course]/[module]/[unit]/actions';
+import type { DoctrineMasteryCheckWire } from './types';
 
-import {
-  saveMasteryAction,
-  type MasteryState,
-} from '../../doctrine/[track]/[module]/[unit]/actions'
-import type { DoctrineMasteryOption } from './types'
+type Props = {
+  check: DoctrineMasteryCheckWire;
+  unitPath: string;
+  initialAnswer: string | null;
+  initialCorrect: boolean;
+};
 
-// Lives client-side: a `'use server'` module can only export async functions.
-const INITIAL_MASTERY: MasteryState = {
-  status: 'idle',
-  affirmation: null,
-  isCorrect: false,
-  error: null,
-  selected: null,
-}
+export function MasteryCheck({ check, unitPath, initialAnswer, initialCorrect }: Props) {
+  const [selected, setSelected] = useState<string | null>(initialAnswer);
+  const [showResult, setShowResult] = useState<boolean>(initialAnswer !== null);
+  const [isCorrect, setIsCorrect] = useState<boolean>(initialCorrect);
+  const [pending, startTransition] = useTransition();
 
-export function MasteryCheck({
-  unitId,
-  prompt,
-  options,
-  previousAnswer,
-}: {
-  unitId: string
-  prompt: string
-  options: DoctrineMasteryOption[]
-  previousAnswer: string | null
-}) {
-  // Seed the local state with the previous answer so the user sees their
-  // prior response on revisit. The server action confirms this and may
-  // overwrite the affirmation/correctness on submit.
-  const [selected, setSelected] = useState<string | null>(previousAnswer)
-  const [state, action, pending] = useActionState<MasteryState, FormData>(
-    saveMasteryAction,
-    INITIAL_MASTERY,
-  )
+  const submit = (answer: string) => {
+    const option = check.options.find((o) => o.text === answer);
+    if (!option) return;
+    setSelected(answer);
+    setShowResult(true);
+    setIsCorrect(option.isCorrect);
+    startTransition(async () => {
+      try {
+        await saveMasteryAction(unitPath, answer, option.isCorrect);
+      } catch (err) {
+        console.error('saveMasteryAction failed', err);
+      }
+    });
+  };
 
-  // The currently shown affirmation: prefer the freshest server response,
-  // fall back to the prior answer's affirmation looked up from `options`.
-  const priorAffirmation =
-    previousAnswer != null
-      ? options.find((o) => o.text === previousAnswer)?.affirmation ?? null
-      : null
-  const affirmation = state.affirmation ?? priorAffirmation
-  const isCorrect =
-    state.status === 'saved'
-      ? state.isCorrect
-      : previousAnswer != null
-        ? Boolean(options.find((o) => o.text === previousAnswer)?.isCorrect)
-        : false
-  const showAffirmation = Boolean(affirmation) && (selected != null)
+  const correctOption = check.options.find((o) => o.isCorrect);
+  const affirmation =
+    showResult && isCorrect ? correctOption?.affirmation ?? 'Yes — well noted.' : null;
 
   return (
-    <section aria-labelledby="mastery-prompt" className="space-y-5">
-      <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-rubric">
-        Mastery · Do you remember?
-      </p>
-      <h2
-        id="mastery-prompt"
-        className="font-display text-2xl italic leading-snug text-ink md:text-3xl"
-      >
-        {prompt}
-      </h2>
-      <form action={action} className="space-y-3">
-        <input type="hidden" name="unitId" value={unitId} />
-        <input type="hidden" name="option" value={selected ?? ''} />
-        <ul className="space-y-2">
-          {options.map((o, i) => {
-            const checked = selected === o.text
-            return (
-              <li key={i}>
-                <button
-                  type="button"
-                  onClick={() => setSelected(o.text)}
-                  aria-pressed={checked}
-                  className={`block w-full rounded-xl border px-4 py-3 text-left font-display text-base italic transition-colors ${
-                    checked
-                      ? 'border-ink bg-vellum-deep text-ink'
-                      : 'border-ink/15 bg-vellum-deep/40 text-ink-soft hover:border-ink/30 hover:text-ink'
-                  }`}
-                >
-                  {o.text}
-                </button>
-              </li>
-            )
-          })}
-        </ul>
-        <button
-          type="submit"
-          disabled={!selected || pending}
-          className="rounded-full bg-ink px-4 py-2 font-mono text-[10px] uppercase tracking-[0.22em] text-vellum transition-colors hover:bg-ink-soft disabled:opacity-50"
-        >
-          {pending ? 'Saving…' : selected === previousAnswer ? 'Saved' : 'Submit'}
-        </button>
-      </form>
-      {showAffirmation ? (
-        <motion.p
-          key={affirmation /* re-animate on change */}
-          initial={{ opacity: 0, y: 4 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ type: 'spring', stiffness: 110, damping: 22, mass: 0.5 }}
-          className={`font-display text-lg italic leading-relaxed ${
-            isCorrect ? 'text-incense' : 'text-rubric-deep'
-          }`}
-          aria-live="polite"
-        >
-          {affirmation}
-        </motion.p>
+    <section className="space-y-4 rounded-md border border-ink/15 bg-vellum/40 p-5">
+      <h2 className="text-[11px] uppercase tracking-[0.22em] text-ink/55">Mastery check</h2>
+      <p className="font-display text-lg leading-snug text-ink">{check.prompt}</p>
+      <ul className="space-y-2">
+        {check.options.map((opt) => {
+          const isSelected = selected === opt.text;
+          const isThisCorrect = showResult && isSelected && opt.isCorrect;
+          const isThisWrong = showResult && isSelected && !opt.isCorrect;
+          return (
+            <li key={opt.text}>
+              <button
+                type="button"
+                disabled={pending}
+                onClick={() => submit(opt.text)}
+                className={`w-full rounded-sm border px-4 py-3 text-left text-sm leading-snug transition-colors ${
+                  isThisCorrect
+                    ? 'border-gilt bg-gilt/[0.1] text-ink'
+                    : isThisWrong
+                      ? 'border-ink/35 bg-ink/[0.04] text-ink/65'
+                      : isSelected
+                        ? 'border-ink/35 bg-ink/[0.04] text-ink/85'
+                        : 'border-ink/15 bg-vellum text-ink/85 hover:border-ink/35'
+                }`}
+              >
+                {opt.text}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+      {affirmation ? (
+        <p className="text-sm italic leading-relaxed text-gilt-deep">{affirmation}</p>
       ) : null}
-      {state.error ? (
-        <p className="font-display text-sm italic text-rubric-deep">{state.error}</p>
+      {showResult && !isCorrect ? (
+        <p className="text-sm italic leading-relaxed text-ink/65">
+          Re-read the folio and try again when ready.
+        </p>
       ) : null}
     </section>
-  )
+  );
 }

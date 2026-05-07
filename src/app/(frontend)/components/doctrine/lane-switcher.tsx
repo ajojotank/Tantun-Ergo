@@ -1,60 +1,90 @@
-'use client'
+'use client';
 
-import { motion } from 'framer-motion'
-import { useId } from 'react'
+import { useState } from 'react';
+import { RichText } from '@payloadcms/richtext-lexical/react';
+import { AutoCompleteSentinel } from './auto-complete-sentinel';
+import { markCompleteAction } from '@/app/(frontend)/doctrine/[course]/[module]/[unit]/actions';
+import type { DoctrineLanesWire } from './types';
 
-export type LaneId = 'read' | 'watch' | 'listen'
+type Props = {
+  lanes: DoctrineLanesWire;
+  unitPath: string;
+  isAlreadyComplete: boolean;
+};
 
-const LABEL: Record<LaneId, string> = {
-  read: 'Read',
-  watch: 'Watch',
-  listen: 'Listen',
-}
+type Lane = 'reading' | 'watch' | 'listen';
 
-export function LaneSwitcher({
-  lanes,
-  active,
-  onChange,
-}: {
-  lanes: LaneId[]
-  active: LaneId
-  onChange: (next: LaneId) => void
-}) {
-  // Stable ID for the indicator's layoutId so the spring travels between
-  // tabs as the user switches. layoutId must be stable across re-renders.
-  const layoutId = useId()
+export function LaneSwitcher({ lanes, unitPath, isAlreadyComplete }: Props) {
+  const availableLanes: Lane[] = [
+    lanes.hasReading ? 'reading' : null,
+    lanes.hasWatch ? 'watch' : null,
+    lanes.hasListen ? 'listen' : null,
+  ].filter((l): l is Lane => l !== null);
+
+  const [activeLane, setActiveLane] = useState<Lane>(availableLanes[0] ?? 'reading');
+
+  if (availableLanes.length === 0) return null;
+
+  const tabClass = (lane: Lane) =>
+    `border-b-2 px-4 py-2 text-sm font-medium uppercase tracking-[0.18em] transition-colors ${
+      activeLane === lane
+        ? 'border-gilt text-ink'
+        : 'border-transparent text-ink/55 hover:text-ink/85'
+    }`;
+
+  const handleLaneEnded = () => {
+    if (isAlreadyComplete) return;
+    markCompleteAction(unitPath).catch((err) => {
+      console.error('lane-end markComplete failed', err);
+    });
+  };
+
   return (
-    <div
-      role="tablist"
-      aria-label="Lane"
-      className="inline-flex items-center gap-1 rounded-full border border-ink/15 bg-vellum-deep/40 p-1"
-    >
-      {lanes.map((l) => (
-        <button
-          key={l}
-          role="tab"
-          aria-selected={active === l}
-          aria-controls={`lane-panel-${l}`}
-          tabIndex={active === l ? 0 : -1}
-          onClick={() => onChange(l)}
-          className="relative rounded-full px-4 py-2 font-mono text-[11px] uppercase tracking-[0.22em] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-rubric/60"
-        >
-          {active === l ? (
-            <motion.span
-              layoutId={layoutId}
-              className="absolute inset-0 rounded-full bg-ink"
-              transition={{ type: 'spring', stiffness: 110, damping: 22, mass: 0.5 }}
-            />
-          ) : null}
-          <span
-            className={`relative z-10 ${
-              active === l ? 'text-vellum' : 'text-ink-soft hover:text-ink'
-            }`}
-          >
-            {LABEL[l]}
-          </span>
-        </button>
-      ))}
+    <div className="space-y-6">
+      <div role="tablist" className="flex gap-2 border-b border-ink/15">
+        {lanes.hasReading ? (
+          <button type="button" role="tab" aria-selected={activeLane === 'reading'} onClick={() => setActiveLane('reading')} className={tabClass('reading')}>
+            Read
+          </button>
+        ) : null}
+        {lanes.hasWatch ? (
+          <button type="button" role="tab" aria-selected={activeLane === 'watch'} onClick={() => setActiveLane('watch')} className={tabClass('watch')}>
+            Watch
+          </button>
+        ) : null}
+        {lanes.hasListen ? (
+          <button type="button" role="tab" aria-selected={activeLane === 'listen'} onClick={() => setActiveLane('listen')} className={tabClass('listen')}>
+            Listen
+          </button>
+        ) : null}
+      </div>
+
+      <div>
+        {activeLane === 'reading' && lanes.reading ? (
+          <article className="prose prose-stone max-w-[65ch] text-base leading-relaxed text-ink/90">
+            <RichText data={lanes.reading} />
+            <AutoCompleteSentinel unitPath={unitPath} isAlreadyComplete={isAlreadyComplete} />
+          </article>
+        ) : null}
+
+        {activeLane === 'watch' && lanes.watchVideoUrl ? (
+          <video
+            src={lanes.watchVideoUrl}
+            controls
+            className="w-full max-w-4xl"
+            onEnded={handleLaneEnded}
+          />
+        ) : null}
+
+        {activeLane === 'listen' && lanes.listenAudioUrl ? (
+          <audio
+            src={lanes.listenAudioUrl}
+            controls
+            className="w-full"
+            onEnded={handleLaneEnded}
+          />
+        ) : null}
+      </div>
     </div>
-  )
+  );
 }
