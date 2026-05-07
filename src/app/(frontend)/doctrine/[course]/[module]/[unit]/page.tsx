@@ -5,6 +5,7 @@ import { findProgressForMember, findProgressForUnit, touchProgress } from '@/lib
 import { requireMember } from '@/lib/auth';
 import { CourseChrome } from '@/app/(frontend)/components/doctrine/course-chrome';
 import { CourseOutline } from '@/app/(frontend)/components/doctrine/course-outline';
+import { MobileOutlineDrawer } from '@/app/(frontend)/components/doctrine/mobile-outline-drawer';
 import { LaneSwitcher } from '@/app/(frontend)/components/doctrine/lane-switcher';
 import { MasteryCheck } from '@/app/(frontend)/components/doctrine/mastery-check';
 import { ResourcesBlock } from '@/app/(frontend)/components/doctrine/resources-block';
@@ -59,6 +60,14 @@ export default async function UnitPlayerPage({ params }: { params: Promise<PageP
         </aside>
 
         <article className="space-y-10">
+          <div className="lg:hidden">
+            <MobileOutlineDrawer
+              course={course}
+              currentModuleSlug={module.slug}
+              currentUnitPath={unit.unitPath}
+              completedUnitPaths={Array.from(completedUnitPaths)}
+            />
+          </div>
           <header className="space-y-2">
             <p className="text-[11px] uppercase tracking-[0.22em] text-ink/55">
               Module {module.romanIndex} · folio {unit.romanIndex}
