@@ -9,6 +9,9 @@ import { buildConfig } from 'payload'
 import sharp from 'sharp'
 
 import { Articles } from './collections/Articles'
+import { DoctrineModules } from './collections/DoctrineModules'
+import { DoctrineTracks } from './collections/DoctrineTracks'
+import { DoctrineUnits } from './collections/DoctrineUnits'
 import { Media } from './collections/Media'
 import { Miracles } from './collections/Miracles'
 import { Pilgrimages } from './collections/Pilgrimages'
@@ -115,7 +118,16 @@ export default buildConfig({
       },
     },
   },
-  collections: [Users, Media, Articles, Miracles, Pilgrimages],
+  collections: [
+    Users,
+    Media,
+    Articles,
+    Miracles,
+    Pilgrimages,
+    DoctrineTracks,
+    DoctrineModules,
+    DoctrineUnits,
+  ],
   globals: [Settings, HomePage, ManifestoPage, CreditsPage],
   plugins,
   cors: [serverURL].filter(Boolean),

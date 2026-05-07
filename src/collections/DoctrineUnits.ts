@@ -1,4 +1,4 @@
-import type { CollectionConfig, CollectionSlug } from 'payload'
+import type { CollectionConfig } from 'payload'
 
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
 
@@ -48,8 +48,7 @@ export const DoctrineUnits: CollectionConfig = {
             {
               name: 'module',
               type: 'relationship',
-              // Cast: doctrine-modules not yet in payload-types (registered in A4)
-              relationTo: 'doctrine-modules' as CollectionSlug,
+              relationTo: 'doctrine-modules',
               required: true,
               hasMany: false,
               admin: {

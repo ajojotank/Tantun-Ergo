@@ -72,6 +72,9 @@ export interface Config {
     articles: Article;
     miracles: Miracle;
     pilgrimages: Pilgrimage;
+    'doctrine-tracks': DoctrineTrack;
+    'doctrine-modules': DoctrineModule;
+    'doctrine-units': DoctrineUnit;
     'payload-kv': PayloadKv;
     'payload-jobs': PayloadJob;
     'payload-locked-documents': PayloadLockedDocument;
@@ -85,6 +88,9 @@ export interface Config {
     articles: ArticlesSelect<false> | ArticlesSelect<true>;
     miracles: MiraclesSelect<false> | MiraclesSelect<true>;
     pilgrimages: PilgrimagesSelect<false> | PilgrimagesSelect<true>;
+    'doctrine-tracks': DoctrineTracksSelect<false> | DoctrineTracksSelect<true>;
+    'doctrine-modules': DoctrineModulesSelect<false> | DoctrineModulesSelect<true>;
+    'doctrine-units': DoctrineUnitsSelect<false> | DoctrineUnitsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -439,6 +445,191 @@ export interface Pilgrimage {
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * Top-level LMS container. Each track holds an ordered set of modules. Listed at /doctrine.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "doctrine-tracks".
+ */
+export interface DoctrineTrack {
+  id: number;
+  title: string;
+  /**
+   * 1–2 sentences. Shown on the catalogue plate and the track overview header.
+   */
+  summary?: string | null;
+  /**
+   * Hero image for the catalogue plate. 4:5 aspect ratio reads best.
+   */
+  coverPlate?: (number | null) | Media;
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+    ogImage?: (number | null) | Media;
+  };
+  /**
+   * URL fragment under /doctrine/.
+   */
+  slug: string;
+  /**
+   * Sort key for the catalogue. Lower numbers appear first. Ties break alphabetically by title.
+   */
+  order?: number | null;
+  /**
+   * Marks this track as filler. Frontend renders a [Sample] badge.
+   */
+  _isSample?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * A chapter within a doctrine track. Groups units. The {track-slug, slug} pair must be unique — slug uniqueness is scoped to the track.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "doctrine-modules".
+ */
+export interface DoctrineModule {
+  id: number;
+  /**
+   * The track this module belongs to. Drag in the studio sidebar to reorder modules within the track.
+   */
+  track: number | DoctrineTrack;
+  title: string;
+  /**
+   * 1–2 sentences. Shown on the track overview folio entry and the module overview header.
+   */
+  summary?: string | null;
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+    ogImage?: (number | null) | Media;
+  };
+  /**
+   * URL fragment within the track (/doctrine/{track}/{this slug}). Should be unique within the track; the seed and frontend assume it.
+   */
+  slug: string;
+  /**
+   * Sort key within the track. Lower numbers appear first. Ties break alphabetically by title.
+   */
+  order?: number | null;
+  /**
+   * Marks this module as filler. Frontend renders a [Sample] badge.
+   */
+  _isSample?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * A single readable folio. Reading lane is required. Watch (video upload) and Listen (audio upload) lanes are optional — leave empty and the frontend hides those tabs entirely.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "doctrine-units".
+ */
+export interface DoctrineUnit {
+  id: number;
+  /**
+   * The module this unit belongs to. Order within the module is set by the `order` sidebar field.
+   */
+  module: number | DoctrineModule;
+  title: string;
+  /**
+   * Optional short opener. Renders above the lane content on every lane.
+   */
+  introduction?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Three lanes — only Reading is required. Watch and Listen tabs hide automatically when their media is empty.
+   */
+  lanes: {
+    /**
+     * Primary lane. Always shown. Default tab when the unit player opens.
+     */
+    reading: {
+      root: {
+        type: string;
+        children: {
+          type: any;
+          version: number;
+          [k: string]: unknown;
+        }[];
+        direction: ('ltr' | 'rtl') | null;
+        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+        indent: number;
+        version: number;
+      };
+      [k: string]: unknown;
+    };
+    /**
+     * Optional video upload (MP4/WebM). When present, a "Watch" tab appears in the lane switcher.
+     */
+    watchVideo?: (number | null) | Media;
+    /**
+     * Optional audio upload (MP3/WAV). When present, a "Listen" tab appears in the lane switcher.
+     */
+    listenAudio?: (number | null) | Media;
+  };
+  /**
+   * Single multiple-choice question shown at the bottom of every lane. Self-graded, gentle — no streaks, no badges. Leave the prompt empty to disable the check entirely.
+   */
+  masteryCheck?: {
+    /**
+     * The question. Spec convention: phrase as "Do you remember…?". Leave empty to skip the check.
+     */
+    prompt?: string | null;
+    /**
+     * Up to six options. Mark exactly one as correct. The affirmation is the one-line response shown after the user submits.
+     */
+    options?:
+      | {
+          text: string;
+          /**
+           * Mark exactly one option correct.
+           */
+          isCorrect?: boolean | null;
+          /**
+           * One-line response shown when the user picks this option. For correct options, an affirming line; for incorrect, a gentle correction.
+           */
+          affirmation?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+    ogImage?: (number | null) | Media;
+  };
+  /**
+   * URL fragment within the module (/doctrine/{track}/{module}/{this slug}). Should be unique within the module.
+   */
+  slug: string;
+  /**
+   * Sort key within the module. Lower numbers appear first. Drives the "Folio iii. of vii." footer numbering and the "Turn page" link target.
+   */
+  order?: number | null;
+  /**
+   * Marks this unit as filler. Frontend renders a [Sample] badge.
+   */
+  _isSample?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -573,6 +764,18 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'pilgrimages';
         value: number | Pilgrimage;
+      } | null)
+    | ({
+        relationTo: 'doctrine-tracks';
+        value: number | DoctrineTrack;
+      } | null)
+    | ({
+        relationTo: 'doctrine-modules';
+        value: number | DoctrineModule;
+      } | null)
+    | ({
+        relationTo: 'doctrine-units';
+        value: number | DoctrineUnit;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -805,6 +1008,92 @@ export interface PilgrimagesSelect<T extends boolean = true> {
         ogImage?: T;
       };
   slug?: T;
+  _isSample?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "doctrine-tracks_select".
+ */
+export interface DoctrineTracksSelect<T extends boolean = true> {
+  title?: T;
+  summary?: T;
+  coverPlate?: T;
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        ogImage?: T;
+      };
+  slug?: T;
+  order?: T;
+  _isSample?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "doctrine-modules_select".
+ */
+export interface DoctrineModulesSelect<T extends boolean = true> {
+  track?: T;
+  title?: T;
+  summary?: T;
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        ogImage?: T;
+      };
+  slug?: T;
+  order?: T;
+  _isSample?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "doctrine-units_select".
+ */
+export interface DoctrineUnitsSelect<T extends boolean = true> {
+  module?: T;
+  title?: T;
+  introduction?: T;
+  lanes?:
+    | T
+    | {
+        reading?: T;
+        watchVideo?: T;
+        listenAudio?: T;
+      };
+  masteryCheck?:
+    | T
+    | {
+        prompt?: T;
+        options?:
+          | T
+          | {
+              text?: T;
+              isCorrect?: T;
+              affirmation?: T;
+              id?: T;
+            };
+      };
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        ogImage?: T;
+      };
+  slug?: T;
+  order?: T;
   _isSample?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -1281,6 +1570,18 @@ export interface TaskSchedulePublish {
       | ({
           relationTo: 'pilgrimages';
           value: number | Pilgrimage;
+        } | null)
+      | ({
+          relationTo: 'doctrine-tracks';
+          value: number | DoctrineTrack;
+        } | null)
+      | ({
+          relationTo: 'doctrine-modules';
+          value: number | DoctrineModule;
+        } | null)
+      | ({
+          relationTo: 'doctrine-units';
+          value: number | DoctrineUnit;
         } | null);
     global?: ('home-page' | 'manifesto-page' | 'credits-page') | null;
     user?: (number | null) | User;
