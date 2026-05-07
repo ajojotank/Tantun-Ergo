@@ -12,6 +12,7 @@ import { Articles } from './collections/Articles'
 import { DoctrineModules } from './collections/DoctrineModules'
 import { DoctrineTracks } from './collections/DoctrineTracks'
 import { DoctrineUnits } from './collections/DoctrineUnits'
+import { LmsProgress } from './collections/LmsProgress'
 import { Media } from './collections/Media'
 import { Members } from './collections/Members'
 import { Miracles } from './collections/Miracles'
@@ -129,6 +130,7 @@ export default buildConfig({
     DoctrineTracks,
     DoctrineModules,
     DoctrineUnits,
+    LmsProgress,
   ],
   globals: [Settings, HomePage, ManifestoPage, CreditsPage],
   plugins,
