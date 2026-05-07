@@ -6,9 +6,11 @@ import { romanize, type DoctrineUnitSummary } from './types'
 export function UnitFolio({
   unit,
   index,
+  isLastVisited = false,
 }: {
   unit: DoctrineUnitSummary
   index: number
+  isLastVisited?: boolean
 }) {
   const numeral = romanize(index + 1)
   const lanes: string[] = ['Read']
@@ -17,17 +19,20 @@ export function UnitFolio({
   return (
     <Link
       href={`/doctrine/${unit.trackSlug}/${unit.moduleSlug}/${unit.slug}`}
-      className="group block py-6"
+      className={`group block py-6 ${
+        isLastVisited ? 'border-l-2 border-gilt pl-4 -ml-4' : ''
+      }`}
     >
       <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft">
         Folio {numeral.toLowerCase()}
         {unit.isSample ? ' · [Sample]' : ''} · {lanes.join(' · ')}
+        {isLastVisited ? ' · Last read' : ''}
       </p>
       <h3 className="mt-2 font-display text-2xl italic leading-tight text-ink transition-colors group-hover:text-rubric-deep md:text-3xl">
         {unit.title}
       </h3>
       <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.22em] text-ink-soft transition-colors group-hover:text-ink">
-        Open folio →
+        {isLastVisited ? 'Resume folio →' : 'Open folio →'}
       </p>
     </Link>
   )

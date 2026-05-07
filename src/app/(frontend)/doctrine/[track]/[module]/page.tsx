@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { UnitFolio } from '../../../components/doctrine/unit-folio'
 import { toUnitSummary } from '../../../components/doctrine/serialise'
 import { payload } from '@/lib/payload'
+import { getMember, requireMember } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
@@ -48,6 +49,7 @@ export default async function DoctrineModulePage({
   params: Params
 }) {
   const { track: trackSlug, module: moduleSlug } = await params
+  await requireMember(`/doctrine/${trackSlug}/${moduleSlug}`)
   const p = await payload()
 
   const trackR = await p.find({
@@ -84,6 +86,35 @@ export default async function DoctrineModulePage({
   })
 
   const units = unitsR.docs.map(toUnitSummary)
+
+  // Read the member's progress on these units so we can highlight the
+  // most recently visited one. Cheap: this page is auth-gated, member is
+  // known. The `getMember` import was already added in Step 2.
+  const member = await getMember()
+  let lastVisitedUnitSlug: string | null = null
+  if (member) {
+    const unitIds = unitsR.docs.map((u) => u.id as number)
+    if (unitIds.length > 0) {
+      const recent = await p.find({
+        collection: 'lms-progress',
+        where: {
+          and: [
+            { member: { equals: member.id } },
+            { unit: { in: unitIds } },
+          ],
+        },
+        sort: '-lastVisitedAt',
+        limit: 1,
+        depth: 1,
+      })
+      const r = recent.docs[0]
+      const u = r?.unit
+      if (u && typeof u === 'object' && 'slug' in u) {
+        lastVisitedUnitSlug = String((u as { slug: string }).slug)
+      }
+    }
+  }
+
   const moduleTitle = String(moduleDoc.title ?? '')
   const trackTitle = String(trackDoc.title ?? '')
   const summary =
@@ -120,7 +151,11 @@ export default async function DoctrineModulePage({
         <ul className="mt-12 divide-y divide-ink/10">
           {units.map((u, i) => (
             <li key={u.id}>
-              <UnitFolio unit={u} index={i} />
+              <UnitFolio
+                unit={u}
+                index={i}
+                isLastVisited={u.slug === lastVisitedUnitSlug}
+              />
             </li>
           ))}
         </ul>

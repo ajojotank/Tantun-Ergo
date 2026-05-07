@@ -4,6 +4,10 @@ import Link from 'next/link'
 import { TrackPlate } from '../components/doctrine/track-plate'
 import { toTrackSummary } from '../components/doctrine/serialise'
 import { payload } from '@/lib/payload'
+import { getMember } from '@/lib/auth'
+import { findMostRecentProgress } from '@/lib/doctrine-progress'
+
+import { ResumeBanner } from '../components/doctrine/resume-banner'
 
 // Force dynamic rendering so newly published tracks appear immediately,
 // without waiting for a rebuild.
@@ -49,6 +53,39 @@ export default async function DoctrineCataloguePage() {
 
   const tracks = tracksResult.docs.map(toTrackSummary)
 
+  // Resume banner — visible only to signed-in members with at least one
+  // progress row. Read once; the catalogue page renders fast enough.
+  const member = await getMember()
+  let resumeProps: {
+    unitTitle: string
+    trackTitle: string
+    moduleTitle: string
+    href: string
+  } | null = null
+  if (member) {
+    const recent = await findMostRecentProgress(member.id)
+    const unit = recent?.unit
+    if (unit && typeof unit === 'object' && 'slug' in unit) {
+      const u = unit as { slug?: string; title?: string; module?: unknown }
+      const moduleObj =
+        u.module && typeof u.module === 'object'
+          ? (u.module as { slug?: string; title?: string; track?: unknown })
+          : null
+      const trackObj =
+        moduleObj?.track && typeof moduleObj.track === 'object'
+          ? (moduleObj.track as { slug?: string; title?: string })
+          : null
+      if (u.slug && moduleObj?.slug && trackObj?.slug) {
+        resumeProps = {
+          unitTitle: String(u.title ?? ''),
+          moduleTitle: String(moduleObj.title ?? ''),
+          trackTitle: String(trackObj.title ?? ''),
+          href: `/doctrine/${trackObj.slug}/${moduleObj.slug}/${u.slug}`,
+        }
+      }
+    }
+  }
+
   return (
     <main className="mx-auto w-full max-w-6xl px-5 py-16 sm:px-8 md:py-28">
       <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-rubric">
@@ -61,6 +98,8 @@ export default async function DoctrineCataloguePage() {
         Read, watch, or listen — three lanes through the same folio. Each unit closes
         with a single, gentle question. Pick up where you left off across any device.
       </p>
+
+      {resumeProps ? <ResumeBanner {...resumeProps} /> : null}
 
       <ul className="mt-16 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {tracks.map((t, i) => (
