@@ -1,8 +1,6 @@
 import { getPayload } from 'payload';
 import config from '@payload-config';
-import { config as loadEnv } from 'dotenv';
-
-loadEnv();
+import 'dotenv/config';
 
 async function main() {
   const email = process.argv[2];
@@ -26,23 +24,23 @@ async function main() {
   }
 
   const member = found.docs[0];
-  const currentRoles = (member.roles ?? []) as string[];
+  const currentRoles = member.roles;
 
   if (currentRoles.includes('admin')) {
     console.log(`${email} is already an admin (roles: ${currentRoles.join(', ')}). No-op.`);
     process.exit(0);
   }
 
-  const nextRoles = Array.from(new Set([...currentRoles, 'admin']));
+  const nextRoles = [...currentRoles, 'admin' as const];
 
   await payload.update({
     collection: 'members',
     id: member.id,
-    data: { roles: nextRoles as ('admin' | 'instructor' | 'learner')[] },
+    data: { roles: nextRoles },
     overrideAccess: true,
   });
 
-  console.log(`✓ Promoted ${email} to admin. Roles: ${nextRoles.join(', ')}`);
+  console.log(`Promoted ${email} to admin. Roles: ${nextRoles.join(', ')}`);
   process.exit(0);
 }
 

@@ -109,7 +109,8 @@ export const Members: CollectionConfig = {
         update: ({ req }) => {
           const user = req.user
           if (!user) return false
-          if (user.collection === 'members') return user.roles?.includes('admin') ?? false
+          if (user.collection === 'members') return user.roles.includes('admin')
+          if (user.collection === 'users') return user.role === 'admin'
           return false
         },
       },
