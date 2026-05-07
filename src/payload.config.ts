@@ -13,6 +13,7 @@ import { DoctrineModules } from './collections/DoctrineModules'
 import { DoctrineTracks } from './collections/DoctrineTracks'
 import { DoctrineUnits } from './collections/DoctrineUnits'
 import { Media } from './collections/Media'
+import { Members } from './collections/Members'
 import { Miracles } from './collections/Miracles'
 import { Pilgrimages } from './collections/Pilgrimages'
 import { Users } from './collections/Users'
@@ -120,6 +121,7 @@ export default buildConfig({
   },
   collections: [
     Users,
+    Members,
     Media,
     Articles,
     Miracles,

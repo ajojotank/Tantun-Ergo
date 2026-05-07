@@ -58,13 +58,8 @@ export const Members: CollectionConfig = {
     // Members can update only themselves; admins can update anyone.
     update: ({ req }) => {
       if (!req.user) return false
-      // Extract collection as a plain string so TS does not narrow it to the
-      // literal 'users'. Once C2 registers the Members collection,
-      // payload-types will expand TypedUser to `User | Member` and this
-      // extraction can be removed.
-      const collection: string = req.user.collection
-      if (collection === 'users' && req.user.role === 'admin') return true
-      if (collection === 'members') {
+      if (req.user.collection === 'users' && req.user.role === 'admin') return true
+      if (req.user.collection === 'members') {
         return { id: { equals: req.user.id } }
       }
       return false
