@@ -1,12 +1,5 @@
-import type { CollectionConfig, PayloadRequest, Validate } from 'payload';
-
-/** Returns true when the authenticated user holds admin rights in either auth collection. */
-function isStudioAdmin(user: PayloadRequest['user']): boolean {
-  if (!user) return false;
-  if (user.collection === 'users') return user.role === 'admin';
-  if (user.collection === 'members') return user.roles.includes('admin');
-  return false;
-}
+import type { CollectionConfig, Validate, Where } from 'payload';
+import { isStudioAdmin, isInstructor } from '@/lib/access';
 
 const validateModuleSlug: Validate<string> = (value, { siblingData: _siblingData, data }) => {
   if (typeof value !== 'string' || value.length === 0) return 'Slug is required';
@@ -47,11 +40,56 @@ export const DoctrineCourses: CollectionConfig = {
     drafts: true,
   },
   access: {
-    // Phase E will replace these with the full per-role matrix.
-    read: () => true,
-    create: ({ req }) => isStudioAdmin(req.user),
-    update: ({ req }) => isStudioAdmin(req.user),
+    read: ({ req }): boolean | Where => {
+      const user = req.user;
+      if (isStudioAdmin(user)) return true;
+      if (isInstructor(user)) {
+        // Instructors see published courses + drafts of their own courses
+        return {
+          or: [
+            { _status: { equals: 'published' } } as Where,
+            { instructors: { contains: user!.id } } as Where,
+          ],
+        } as Where;
+      }
+      // Public + learners: published only
+      return { _status: { equals: 'published' } } as Where;
+    },
+    create: ({ req }) => {
+      const user = req.user;
+      return isStudioAdmin(user) || isInstructor(user);
+    },
+    update: ({ req }) => {
+      const user = req.user;
+      if (!user) return false;
+      if (isStudioAdmin(user)) return true;
+      if (isInstructor(user)) {
+        return { instructors: { contains: user.id } };
+      }
+      return false;
+    },
     delete: ({ req }) => isStudioAdmin(req.user),
+  },
+  hooks: {
+    beforeChange: [
+      ({ req, operation, data }) => {
+        if (operation !== 'create') return data;
+        const user = req.user;
+        if (!user) return data;
+        const adminFlag = isStudioAdmin(user);
+        const instructorFlag = isInstructor(user);
+
+        // Auto-attribute: instructors who aren't admins get added to the course's instructors list.
+        if (instructorFlag && !adminFlag) {
+          const existing = Array.isArray(data.instructors) ? data.instructors : [];
+          const userId = user.id;
+          if (!existing.some((id) => id === userId)) {
+            return { ...data, instructors: [...existing, userId] };
+          }
+        }
+        return data;
+      },
+    ],
   },
   fields: [
     {

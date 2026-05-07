@@ -1,12 +1,5 @@
-import type { CollectionConfig, PayloadRequest } from 'payload';
-
-/** Returns true when the authenticated user holds admin rights in either auth collection. */
-function isStudioAdmin(user: PayloadRequest['user']): boolean {
-  if (!user) return false;
-  if (user.collection === 'users') return user.role === 'admin';
-  if (user.collection === 'members') return user.roles.includes('admin');
-  return false;
-}
+import type { CollectionConfig } from 'payload';
+import { isStudioAdmin } from '@/lib/access';
 
 export const LmsProgress: CollectionConfig = {
   slug: 'lmsProgress',
@@ -15,7 +8,6 @@ export const LmsProgress: CollectionConfig = {
     defaultColumns: ['member', 'unitPath', 'completedAt', 'lastVisitedAt'],
     group: 'Doctrine',
   },
-  // Phase E will replace these with the full matrix.
   access: {
     read: ({ req }) => isStudioAdmin(req.user),
     create: ({ req }) => isStudioAdmin(req.user),
