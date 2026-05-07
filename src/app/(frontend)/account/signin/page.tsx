@@ -48,15 +48,25 @@ function SignInForm() {
           {pending ? 'Signing in…' : 'Sign in'}
         </button>
       </form>
-      <p className="mt-8 font-mono text-[11px] uppercase tracking-[0.22em] text-ink-soft">
-        New here?{' '}
-        <Link
-          href={next ? `/account/signup?next=${encodeURIComponent(next)}` : '/account/signup'}
-          className="text-ink underline-offset-4 hover:underline"
-        >
-          Create an account
-        </Link>
-      </p>
+      <div className="mt-8 flex flex-col gap-3 font-mono text-[11px] uppercase tracking-[0.22em] text-ink-soft">
+        <p>
+          New here?{' '}
+          <Link
+            href={next ? `/account/signup?next=${encodeURIComponent(next)}` : '/account/signup'}
+            className="text-ink underline-offset-4 hover:underline"
+          >
+            Create an account
+          </Link>
+        </p>
+        <p>
+          <Link
+            href="/account/forgot-password"
+            className="text-ink-soft underline-offset-4 hover:text-ink hover:underline"
+          >
+            Forgot your password?
+          </Link>
+        </p>
+      </div>
     </AuthShell>
   )
 }
