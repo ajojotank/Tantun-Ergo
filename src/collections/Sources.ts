@@ -1,4 +1,4 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, CollectionAfterChangeHook } from 'payload'
 
 export const Sources: CollectionConfig = {
   slug: 'sources',
@@ -19,6 +19,23 @@ export const Sources: CollectionConfig = {
       Boolean(
         req.user && req.user.collection === 'users' && req.user.role === 'admin',
       ),
+  },
+  hooks: {
+    afterChange: [
+      (async ({ doc, previousDoc, req, operation }) => {
+        const fileChanged =
+          operation === 'create'
+            ? Boolean(doc.file)
+            : doc.file && (!previousDoc?.file || (typeof doc.file === 'object' ? doc.file.id : doc.file) !== (typeof previousDoc?.file === 'object' ? previousDoc?.file?.id : previousDoc?.file))
+        if (!fileChanged) return doc
+        if (doc.ingestStatus === 'ingesting') return doc
+        const { ingestSource } = await import('../catechist/ingest')
+        ingestSource(req.payload, doc.id as number).catch((err) => {
+          req.payload.logger.error(`afterChange ingest failed: ${err}`)
+        })
+        return doc
+      }) as CollectionAfterChangeHook,
+    ],
   },
   fields: [
     { name: 'title', type: 'text', required: true },
