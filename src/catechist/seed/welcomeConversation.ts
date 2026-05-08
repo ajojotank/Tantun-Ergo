@@ -34,12 +34,15 @@ When the sources I have read do not let me answer with confidence, I will refuse
 
 Ask me anything.`,
           citations: [
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             { chunkId: 'welcome-placeholder-1', locator: 'CCC §80', quotedSpan: 'Sacred Tradition and Sacred Scripture' } as any,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             { chunkId: 'welcome-placeholder-2', locator: 'About this Catechist', quotedSpan: 'I will never invent.' } as any,
           ],
           components: [],
           createdAt: new Date().toISOString(),
         },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ] as any,
     },
     overrideAccess: true,

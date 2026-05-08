@@ -1,5 +1,5 @@
 import 'server-only'
-import pdfParse = require('pdf-parse')
+import pdfParse from 'pdf-parse'
 import mammoth from 'mammoth'
 
 export type ExtractFormat = 'pdf' | 'docx' | 'txt'
