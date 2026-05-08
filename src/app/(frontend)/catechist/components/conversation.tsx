@@ -31,7 +31,7 @@ export function Conversation({ conversationId, title, initialMessages }: Props) 
   // No input/handleInputChange/handleSubmit — we manage input via useState.
   // Body composition: use DefaultChatTransport with prepareSendMessagesRequest
   // so the route receives { conversationId, question } instead of { messages }.
-  const { messages, sendMessage, status } = useChat({
+  const { messages, sendMessage, status, error } = useChat({
     id: conversationId,
     transport: new DefaultChatTransport({
       api: '/api/catechist/ask',
@@ -109,6 +109,14 @@ export function Conversation({ conversationId, title, initialMessages }: Props) 
           <div className="my-6 font-display italic text-ink-soft/60 text-sm animate-pulse">
             The Catechist is reflecting…
           </div>
+        )}
+
+        {error && (
+          <p className="text-rubric font-display italic text-sm mt-2">
+            {error.message?.includes('rate_limited')
+              ? "You've reached today's inquiry limit. The Catechist returns at midnight."
+              : 'Connection interrupted. Try again.'}
+          </p>
         )}
 
         <div ref={bottomRef} />
