@@ -9,12 +9,15 @@ import { buildConfig } from 'payload'
 import sharp from 'sharp'
 
 import { Articles } from './collections/Articles'
+import { CatechistConversations } from './collections/CatechistConversations'
+import { Concepts } from './collections/Concepts'
 import { DoctrineCourses } from './collections/DoctrineCourses'
 import { LmsProgress } from './collections/LmsProgress'
 import { Media } from './collections/Media'
 import { Members } from './collections/Members'
 import { Miracles } from './collections/Miracles'
 import { Pilgrimages } from './collections/Pilgrimages'
+import { Sources } from './collections/Sources'
 import { Users } from './collections/Users'
 import { initRawTables } from './db/init-raw-tables'
 import { CreditsPage } from './globals/CreditsPage'
@@ -127,6 +130,9 @@ export default buildConfig({
     Pilgrimages,
     DoctrineCourses,
     LmsProgress,
+    Sources,
+    Concepts,
+    CatechistConversations,
   ],
   globals: [Settings, HomePage, ManifestoPage, CreditsPage],
   plugins,

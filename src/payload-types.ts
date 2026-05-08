@@ -76,6 +76,9 @@ export interface Config {
     pilgrimages: Pilgrimage;
     doctrineCourses: DoctrineCourse;
     lmsProgress: LmsProgress;
+    sources: Source;
+    concepts: Concept;
+    'catechist-conversations': CatechistConversation;
     'payload-kv': PayloadKv;
     'payload-jobs': PayloadJob;
     'payload-locked-documents': PayloadLockedDocument;
@@ -92,6 +95,9 @@ export interface Config {
     pilgrimages: PilgrimagesSelect<false> | PilgrimagesSelect<true>;
     doctrineCourses: DoctrineCoursesSelect<false> | DoctrineCoursesSelect<true>;
     lmsProgress: LmsProgressSelect<false> | LmsProgressSelect<true>;
+    sources: SourcesSelect<false> | SourcesSelect<true>;
+    concepts: ConceptsSelect<false> | ConceptsSelect<true>;
+    'catechist-conversations': CatechistConversationsSelect<false> | CatechistConversationsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -674,6 +680,134 @@ export interface LmsProgress {
   createdAt: string;
 }
 /**
+ * Catechist corpus documents. Upload a file, set fields, then click "Ingest" in the sidebar.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sources".
+ */
+export interface Source {
+  id: number;
+  title: string;
+  slug: string;
+  author?: string | null;
+  year?: number | null;
+  authorityTier: 'scripture' | 'council' | 'catechism' | 'encyclical' | 'father' | 'theologian' | 'other';
+  locatorFormat:
+    | 'bible'
+    | 'ccc'
+    | 'roman-catechism'
+    | 'council-canon'
+    | 'encyclical-section'
+    | 'summa'
+    | 'father-book-chapter'
+    | 'generic';
+  file: number | Media;
+  /**
+   * Surfaced on the Credits page. e.g. "Public domain (NPNF)", "Vatican English text, used with credit".
+   */
+  rightsNote?: string | null;
+  ingestStatus?: ('pending' | 'ingesting' | 'ingested' | 'error') | null;
+  chunkCount?: number | null;
+  lastIngestedAt?: string | null;
+  errorMessage?: string | null;
+  /**
+   * Sample/filler doc — badged in studio + frontend.
+   */
+  _isSample?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Curated Catholic ontology. Each chunk is tagged with 3-7 concepts at ingestion.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "concepts".
+ */
+export interface Concept {
+  id: number;
+  name: string;
+  slug: string;
+  /**
+   * One-paragraph definition; used in the Gemini Flash classification prompt.
+   */
+  definition: string;
+  /**
+   * Optional taxonomy parent.
+   */
+  parent?: (number | null) | Concept;
+  /**
+   * Alternate phrasings used for matching, e.g. "transubstantiation" under Real Presence.
+   */
+  synonyms?:
+    | {
+        phrase: string;
+        id?: string | null;
+      }[]
+    | null;
+  category:
+    | 'trinity-god'
+    | 'christology'
+    | 'soteriology'
+    | 'sacraments'
+    | 'moral'
+    | 'ecclesiology'
+    | 'eschatology'
+    | 'mariology'
+    | 'spirituality'
+    | 'other';
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Per-Member multi-turn threads with the Catechist. Stewards can read for support; Members manage their own.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "catechist-conversations".
+ */
+export interface CatechistConversation {
+  id: number;
+  member: number | Member;
+  title: string;
+  messages?:
+    | {
+        role: 'user' | 'assistant';
+        content: string;
+        /**
+         * Array<{ chunkId, locator, quotedSpan }>; assistant only.
+         */
+        citations?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        /**
+         * Serialized tool calls (scriptureCard etc.) for re-render; assistant only.
+         */
+        components?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        createdAt: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Soft-delete flag.
+   */
+  archived?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -820,6 +954,18 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'lmsProgress';
         value: number | LmsProgress;
+      } | null)
+    | ({
+        relationTo: 'sources';
+        value: number | Source;
+      } | null)
+    | ({
+        relationTo: 'concepts';
+        value: number | Concept;
+      } | null)
+    | ({
+        relationTo: 'catechist-conversations';
+        value: number | CatechistConversation;
       } | null);
   globalSlug?: string | null;
   user:
@@ -1178,6 +1324,67 @@ export interface LmsProgressSelect<T extends boolean = true> {
   masteryCorrect?: T;
   completedAt?: T;
   lastVisitedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sources_select".
+ */
+export interface SourcesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  author?: T;
+  year?: T;
+  authorityTier?: T;
+  locatorFormat?: T;
+  file?: T;
+  rightsNote?: T;
+  ingestStatus?: T;
+  chunkCount?: T;
+  lastIngestedAt?: T;
+  errorMessage?: T;
+  _isSample?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "concepts_select".
+ */
+export interface ConceptsSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  definition?: T;
+  parent?: T;
+  synonyms?:
+    | T
+    | {
+        phrase?: T;
+        id?: T;
+      };
+  category?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "catechist-conversations_select".
+ */
+export interface CatechistConversationsSelect<T extends boolean = true> {
+  member?: T;
+  title?: T;
+  messages?:
+    | T
+    | {
+        role?: T;
+        content?: T;
+        citations?: T;
+        components?: T;
+        createdAt?: T;
+        id?: T;
+      };
+  archived?: T;
   updatedAt?: T;
   createdAt?: T;
 }
