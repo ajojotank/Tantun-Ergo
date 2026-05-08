@@ -1512,8 +1512,14 @@ export interface Setting {
    * mapbox:// URL. Leave blank for default style. Used by /atlas (Plan 2).
    */
   mapboxStyle?: string | null;
-  catechistRateLimit: {
-    requestsPerHour: number;
+  catechistRateLimit?: {
+    /**
+     * Per-Member daily cap on /api/catechist/ask requests.
+     */
+    dailyLimit?: number | null;
+    /**
+     * Shown when retrieval+generation cannot produce a citation-bound answer.
+     */
     refusalMessage?: string | null;
   };
   /**
@@ -1720,7 +1726,7 @@ export interface SettingsSelect<T extends boolean = true> {
   catechistRateLimit?:
     | T
     | {
-        requestsPerHour?: T;
+        dailyLimit?: T;
         refusalMessage?: T;
       };
   showSampleBadges?: T;

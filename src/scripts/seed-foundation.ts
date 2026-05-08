@@ -15,7 +15,7 @@ async function main() {
       footerCopy: lexicalLine(
         'Tantum Ergo is a citation-bound formation surface. Mobile-first. Built to last centuries.',
       ),
-      catechistRateLimit: { requestsPerHour: 20 },
+      catechistRateLimit: { dailyLimit: 50 },
       showSampleBadges: true,
     },
   })

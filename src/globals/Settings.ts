@@ -83,12 +83,21 @@ export const Settings: GlobalConfig = {
       name: 'catechistRateLimit',
       type: 'group',
       fields: [
-        { name: 'requestsPerHour', type: 'number', defaultValue: 20, required: true },
+        {
+          name: 'dailyLimit',
+          type: 'number',
+          defaultValue: 50,
+          admin: { description: 'Per-Member daily cap on /api/catechist/ask requests.' },
+        },
         {
           name: 'refusalMessage',
-          type: 'text',
+          type: 'textarea',
           defaultValue:
-            'You\'ve asked many questions in a short time. Please rest and return shortly.',
+            "I cannot answer this with confidence from the sources I've read. Here are the closest passages I found —",
+          admin: {
+            description:
+              'Shown when retrieval+generation cannot produce a citation-bound answer.',
+          },
         },
       ],
     },
