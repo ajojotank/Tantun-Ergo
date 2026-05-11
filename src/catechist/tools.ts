@@ -1,4 +1,3 @@
-import 'server-only'
 import { tool } from 'ai'
 import { z } from 'zod'
 

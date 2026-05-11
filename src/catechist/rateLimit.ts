@@ -1,4 +1,3 @@
-import 'server-only'
 import type { Payload } from 'payload'
 
 export interface RateLimitResult {

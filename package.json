@@ -22,10 +22,11 @@
     "seed:atlas": "tsx src/scripts/seed-atlas.ts",
     "seed:pilgrimages": "tsx src/scripts/seed-pilgrimages.ts",
     "seed:doctrine": "NODE_ENV=production tsx src/scripts/seed-doctrine.ts",
-    "seed:concepts": "tsx src/scripts/seed-concepts.ts",
+    "seed:concepts": "NODE_ENV=production tsx src/scripts/seed-concepts.ts",
+    "seed:test-source": "NODE_ENV=production tsx src/scripts/seed-test-source.ts",
     "admin:promote": "tsx src/scripts/promote-admin.ts",
     "migrate:media": "tsx src/scripts/migrate-media-to-supabase.ts",
-    "catechist:eval": "tsx src/scripts/catechist-eval.ts"
+    "catechist:eval": "NODE_ENV=production tsx src/scripts/catechist-eval.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.70",

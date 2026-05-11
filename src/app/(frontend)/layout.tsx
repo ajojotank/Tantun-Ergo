@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Cormorant_Garamond, Geist, Geist_Mono } from 'next/font/google'
 
 import { ScrollRubric } from './components/scroll-rubric'
-import { SiteChromeHide } from './components/site-chrome-hide'
+import { SiteChromeHide, SiteHeaderHide } from './components/site-chrome-hide'
 import { SiteFooter } from './components/site-footer'
 import { SiteHeader } from './components/site-header'
 import { payload } from '@/lib/payload'
@@ -64,11 +64,12 @@ export default function FrontendRootLayout({
         style={{ position: 'relative' }}
       >
         <ScrollRubric />
-        {/* Header is shown on every route — users need it for nav. The
-            full-bleed feel of /atlas is preserved by hiding the FOOTER (via
-            SiteChromeHide below) and by sizing <main> to fill exactly the
-            remaining viewport (`flex-1 min-h-0` on /atlas + walker mains). */}
-        <SiteHeader />
+        {/* Header is shown on every route except app-shell routes (Catechist)
+            which provide their own brand chrome via sidebar + mobile top bar.
+            Atlas keeps the header — only the footer is hidden there. */}
+        <SiteHeaderHide>
+          <SiteHeader />
+        </SiteHeaderHide>
         {children}
         <SiteChromeHide>
           <SiteFooter />

@@ -1,23 +1,15 @@
 import 'server-only'
 import { NextRequest } from 'next/server'
-import { getPayload } from 'payload'
-import config from '../../../../../payload.config'
+import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 
-async function authedMember(req: NextRequest) {
-  const payload = await getPayload({ config })
-  const cookieHeader = req.headers.get('cookie') ?? ''
-  const auth = await payload.auth({ headers: new Headers({ cookie: cookieHeader }) })
-  const user = auth.user
-  if (!user || user.collection !== 'members') return { payload, user: null }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if (!(user as any)._verified) return { payload, user: null }
-  return { payload, user }
-}
+import { getMember } from '@/lib/auth'
+import { payload as getPayloadInstance } from '@/lib/payload'
 
-export async function GET(req: NextRequest) {
-  const { payload, user } = await authedMember(req)
+export async function GET(_req: NextRequest) {
+  const user = await getMember()
   if (!user) return new Response('Unauthorized', { status: 401 })
+  const payload = await getPayloadInstance()
 
   const conversations = await payload.find({
     collection: 'catechist-conversations',
@@ -44,8 +36,9 @@ export async function GET(req: NextRequest) {
 const CreateBody = z.object({ title: z.string().optional() })
 
 export async function POST(req: NextRequest) {
-  const { payload, user } = await authedMember(req)
+  const user = await getMember()
   if (!user) return new Response('Unauthorized', { status: 401 })
+  const payload = await getPayloadInstance()
 
   const body = CreateBody.parse(await req.json().catch(() => ({})))
   const created = await payload.create({
@@ -59,6 +52,10 @@ export async function POST(req: NextRequest) {
     overrideAccess: false,
     user,
   })
+
+  // Sidebar lives on the catechist layout — invalidate so the freshly
+  // created conversation appears without a manual refresh.
+  revalidatePath('/catechist', 'layout')
 
   return Response.json({ id: String(created.id), title: created.title })
 }

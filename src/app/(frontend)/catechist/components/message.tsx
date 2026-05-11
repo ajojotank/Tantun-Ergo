@@ -1,5 +1,7 @@
 'use client'
 
+import { useId } from 'react'
+
 import { ScriptureCard } from './cards/scripture-card'
 import { CatechismCard } from './cards/catechism-card'
 import { SourcePreviewCard } from './cards/source-preview-card'
@@ -27,7 +29,46 @@ interface Props {
   toolInvocations: any[]
 }
 
+// Render the prose, parsing inline [^N] footnote markers into clickable
+// superscript links that scroll to the matching footnote anchor.
+function ProseWithFootnotes({
+  content,
+  idMarker,
+  maxN,
+}: {
+  content: string
+  idMarker: string
+  maxN: number
+}) {
+  // Split on [^N] markers, keeping the markers as separate items.
+  const parts = content.split(/(\[\^\d+\])/g)
+  return (
+    <div className="font-display text-lg leading-relaxed text-ink whitespace-pre-wrap">
+      {parts.map((part, i) => {
+        const m = /^\[\^(\d+)\]$/.exec(part)
+        if (!m) return <span key={i}>{part}</span>
+        const n = Number(m[1])
+        if (!Number.isFinite(n) || n < 1 || n > maxN) {
+          return <span key={i}>{part}</span>
+        }
+        return (
+          <a
+            key={i}
+            href={`#footnote-${idMarker}-${n}`}
+            className="inline-block mx-0.5 align-super text-[10px] font-mono text-rubric hover:bg-rubric/10 rounded px-1 no-underline transition-colors"
+            aria-label={`Footnote ${n}`}
+          >
+            {n}
+          </a>
+        )
+      })}
+    </div>
+  )
+}
+
 export function Message({ role, content, citations, toolInvocations }: Props) {
+  const idMarker = useId().replace(/:/g, '')
+
   if (role === 'user') {
     return (
       <div className="my-10">
@@ -40,9 +81,7 @@ export function Message({ role, content, citations, toolInvocations }: Props) {
 
   return (
     <div className="my-6">
-      <div className="font-display text-lg leading-relaxed text-ink whitespace-pre-wrap">
-        {content}
-      </div>
+      <ProseWithFootnotes content={content} idMarker={idMarker} maxN={citations.length} />
 
       <div className="mt-6 space-y-3">
         {toolInvocations.map((inv, i) => {
@@ -62,7 +101,7 @@ export function Message({ role, content, citations, toolInvocations }: Props) {
         })}
       </div>
 
-      {citations.length > 0 && <Footnotes citations={citations} />}
+      {citations.length > 0 && <Footnotes citations={citations} idMarker={idMarker} />}
 
       <hr className="border-parchment mt-8" />
     </div>

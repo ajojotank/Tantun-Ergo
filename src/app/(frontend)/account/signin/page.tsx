@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { Suspense, useActionState } from 'react'
 
 import { AuthShell } from '../../components/account/auth-shell'
+import { destinationContext } from '../../components/account/destination-context'
 import { signInAction, type SignInState } from './actions'
 
 const INITIAL: SignInState = { error: null }
@@ -15,13 +16,10 @@ function SignInForm() {
   const verified = searchParams.get('verified') === '1'
 
   const [state, action, pending] = useActionState(signInAction, INITIAL)
+  const ctx = destinationContext(next, 'signin')
 
   return (
-    <AuthShell
-      eyebrow="Account · Sign in"
-      title="Welcome back."
-      intro="Sign in to resume your reading and keep your progress in step across your devices."
-    >
+    <AuthShell eyebrow={ctx.eyebrow} title={ctx.title} intro={ctx.intro}>
       {verified ? (
         <p className="mb-6 rounded-xl border border-incense/30 bg-incense/10 px-4 py-3 font-display text-base italic leading-relaxed text-ink">
           Your email is verified — go ahead and sign in.

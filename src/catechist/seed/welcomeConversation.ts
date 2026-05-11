@@ -1,4 +1,3 @@
-import 'server-only'
 import type { Payload } from 'payload'
 
 export async function ensureWelcomeConversation(payload: Payload, memberId: number): Promise<string | null> {

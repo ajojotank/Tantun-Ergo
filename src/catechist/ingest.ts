@@ -1,4 +1,3 @@
-import 'server-only'
 import type { Payload } from 'payload'
 import { detectFormat, extractText } from './textExtract'
 import { chunkText, type LocatorFormat } from './chunker'
@@ -27,9 +26,23 @@ async function rawDb(payload: Payload): Promise<{
   }
 }
 
-export async function ingestSource(payload: Payload, sourceId: number): Promise<void> {
+/**
+ * Ingest already-extracted text for a Source. Used by:
+ *   - ingestSource() (file path) — after PDF/DOCX extraction
+ *   - scripts/seed-test-source.ts — bypasses file upload entirely
+ *
+ * Runs the full pipeline: chunk → embed → insert → citations → concepts →
+ * resolve previously-unresolved citations → mark Source.ingested.
+ *
+ * Marks Source.ingestStatus to 'ingesting' on entry and 'ingested' on
+ * success / 'error' with errorMessage on failure (and rethrows).
+ */
+export async function ingestRawText(
+  payload: Payload,
+  sourceId: number,
+  text: string,
+): Promise<void> {
   const source = await payload.findByID({ collection: 'sources', id: sourceId })
-  if (!source.file) throw new Error(`Source ${sourceId} has no file`)
 
   await payload.update({
     collection: 'sources',
@@ -40,36 +53,24 @@ export async function ingestSource(payload: Payload, sourceId: number): Promise<
   const db = await rawDb(payload)
 
   try {
-    // 1. Download file
-    const mediaId = typeof source.file === 'object' ? source.file.id : source.file
-    const media = await payload.findByID({ collection: 'media', id: mediaId as number })
-    const fileUrl = media.url
-    if (!fileUrl) throw new Error('Media has no URL')
-
-    const res = await fetch(fileUrl)
-    if (!res.ok) throw new Error(`Failed to download file: ${res.status}`)
-    const buf = Buffer.from(await res.arrayBuffer())
-
-    // 2. Extract
-    const format = detectFormat(media.filename ?? 'unknown')
-    const { text } = await extractText(buf, format)
-
-    // 3. Chunk
+    // 1. Chunk
     const chunks = chunkText(text, source.locatorFormat as LocatorFormat, {
       sourceTitle: source.title,
     })
     if (chunks.length === 0) throw new Error('Chunker returned 0 chunks')
 
-    // 4. Embed (batched)
+    // 2. Embed (batched)
     const allEmbeddings: number[][] = []
     for (let i = 0; i < chunks.length; i += EMBED_BATCH) {
       const batch = chunks.slice(i, i + EMBED_BATCH)
       const vecs = await embed(batch.map((c) => c.text), 'RETRIEVAL_DOCUMENT')
       allEmbeddings.push(...vecs)
-      payload.logger.info(`[ingest:${sourceId}] embedded ${Math.min(i + EMBED_BATCH, chunks.length)}/${chunks.length}`)
+      payload.logger.info(
+        `[ingest:${sourceId}] embedded ${Math.min(i + EMBED_BATCH, chunks.length)}/${chunks.length}`,
+      )
     }
 
-    // 5. Insert chunks (one big batch)
+    // 3. Insert chunks
     const inserted: InsertedChunk[] = []
     for (let i = 0; i < chunks.length; i++) {
       const c = chunks[i]
@@ -78,14 +79,26 @@ export async function ingestSource(payload: Payload, sourceId: number): Promise<
         sql: `INSERT INTO tantum.source_chunks (source_id, chunk_index, text, locator, page_number, embedding, authority_tier)
               VALUES ($1, $2, $3, $4, $5, $6::vector, $7)
               RETURNING id, text, locator`,
-        params: [sourceId, c.chunkIndex, c.text, c.locator, c.pageNumber ?? null, vec, source.authorityTier],
+        params: [
+          sourceId,
+          c.chunkIndex,
+          c.text,
+          c.locator,
+          c.pageNumber ?? null,
+          vec,
+          source.authorityTier,
+        ],
       })
       const row = r.rows[0]
-      inserted.push({ id: row.id as string, text: row.text as string, locator: row.locator as string })
+      inserted.push({
+        id: row.id as string,
+        text: row.text as string,
+        locator: row.locator as string,
+      })
     }
     payload.logger.info(`[ingest:${sourceId}] inserted ${inserted.length} chunks`)
 
-    // 6. Citation parsing
+    // 4. Citation parsing
     for (const c of inserted) {
       const cites = parseCitations(c.text)
       for (const cite of cites) {
@@ -97,7 +110,7 @@ export async function ingestSource(payload: Payload, sourceId: number): Promise<
       }
     }
 
-    // 7. Concept tagging (batched)
+    // 5. Concept tagging (batched)
     const concepts = await payload.find({ collection: 'concepts', limit: 200 })
     const conceptDefs: ConceptDef[] = concepts.docs.map((c) => ({
       id: c.id as number,
@@ -120,11 +133,13 @@ export async function ingestSource(payload: Payload, sourceId: number): Promise<
             })
           }
         }
-        payload.logger.info(`[ingest:${sourceId}] tagged ${Math.min(i + TAG_BATCH, inserted.length)}/${inserted.length}`)
+        payload.logger.info(
+          `[ingest:${sourceId}] tagged ${Math.min(i + TAG_BATCH, inserted.length)}/${inserted.length}`,
+        )
       }
     }
 
-    // 8. Resolve previously-unresolved citations against the new chunks
+    // 6. Resolve previously-unresolved citations against the new chunks
     await db.execute({
       sql: `UPDATE tantum.source_chunk_citations c
             SET to_chunk_id = sc.id
@@ -133,7 +148,7 @@ export async function ingestSource(payload: Payload, sourceId: number): Promise<
               AND c.to_locator = sc.locator`,
     })
 
-    // 9. Mark done
+    // 7. Mark done
     await payload.update({
       collection: 'sources',
       id: sourceId,
@@ -154,4 +169,28 @@ export async function ingestSource(payload: Payload, sourceId: number): Promise<
     })
     throw err
   }
+}
+
+/**
+ * Ingest a Source by downloading its uploaded file (PDF / DOCX / TXT),
+ * extracting text, then handing off to ingestRawText for the embed +
+ * persist pipeline.
+ */
+export async function ingestSource(payload: Payload, sourceId: number): Promise<void> {
+  const source = await payload.findByID({ collection: 'sources', id: sourceId })
+  if (!source.file) throw new Error(`Source ${sourceId} has no file`)
+
+  const mediaId = typeof source.file === 'object' ? source.file.id : source.file
+  const media = await payload.findByID({ collection: 'media', id: mediaId as number })
+  const fileUrl = media.url
+  if (!fileUrl) throw new Error('Media has no URL')
+
+  const res = await fetch(fileUrl)
+  if (!res.ok) throw new Error(`Failed to download file: ${res.status}`)
+  const buf = Buffer.from(await res.arrayBuffer())
+
+  const format = detectFormat(media.filename ?? 'unknown')
+  const { text } = await extractText(buf, format)
+
+  await ingestRawText(payload, sourceId, text)
 }

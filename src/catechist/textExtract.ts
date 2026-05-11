@@ -1,4 +1,3 @@
-import 'server-only'
 import pdfParse from 'pdf-parse'
 import mammoth from 'mammoth'
 

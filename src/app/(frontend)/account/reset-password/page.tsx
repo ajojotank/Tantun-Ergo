@@ -2,9 +2,9 @@
 
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const params = useSearchParams()
   const router = useRouter()
   const token = params.get('token') ?? ''
@@ -33,7 +33,7 @@ export default function ResetPasswordPage() {
         setError(err?.errors?.[0]?.message ?? 'Reset failed.')
         return
       }
-      router.push('/sign-in?reset=1')
+      router.push('/account/signin?reset=1')
     } finally {
       setSubmitting(false)
     }
@@ -71,8 +71,16 @@ export default function ResetPasswordPage() {
       </form>
 
       <p className="mt-10 font-mono text-sm text-ink-soft">
-        <Link href="/sign-in" className="underline">Back to sign in</Link>
+        <Link href="/account/signin" className="underline">Back to sign in</Link>
       </p>
     </main>
+  )
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<main className="mx-auto max-w-md px-6 py-24"><p className="font-display italic text-ink-soft">Loading…</p></main>}>
+      <ResetPasswordForm />
+    </Suspense>
   )
 }

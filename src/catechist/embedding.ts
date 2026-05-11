@@ -1,4 +1,3 @@
-import 'server-only'
 import { GoogleGenAI } from '@google/genai'
 
 const apiKey = process.env.GOOGLE_AI_API_KEY

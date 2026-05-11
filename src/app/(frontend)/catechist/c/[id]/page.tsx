@@ -1,25 +1,24 @@
-import { notFound, redirect } from 'next/navigation'
-import { headers as nextHeaders } from 'next/headers'
-import { getPayload } from 'payload'
-import config from '../../../../../payload.config'
+import { notFound } from 'next/navigation'
+
+import { requireMember } from '@/lib/auth'
+import { payload as getPayloadInstance } from '@/lib/payload'
+
 import { Conversation } from '../../components/conversation'
 
 export const dynamic = 'force-dynamic'
 
 export default async function ConversationPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const payload = await getPayload({ config })
-  const h = await nextHeaders()
-  const auth = await payload.auth({ headers: h })
-  if (!auth.user || auth.user.collection !== 'members') redirect('/sign-in?next=/catechist')
+  const member = await requireMember(`/catechist/c/${id}`)
 
+  const payload = await getPayloadInstance()
   let conv
   try {
     conv = await payload.findByID({
       collection: 'catechist-conversations',
       id,
       overrideAccess: false,
-      user: auth.user,
+      user: { ...member, collection: 'members' },
     })
   } catch {
     notFound()

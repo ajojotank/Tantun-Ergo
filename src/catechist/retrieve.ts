@@ -1,4 +1,3 @@
-import 'server-only'
 import type { Payload } from 'payload'
 import { embedOne } from './embedding'
 import { tagChunks, type ConceptDef } from './conceptTagger'

@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { Suspense, useActionState } from 'react'
 
 import { AuthShell } from '../../components/account/auth-shell'
+import { destinationContext } from '../../components/account/destination-context'
 import { signUpAction, type SignUpState } from './actions'
 
 const INITIAL: SignUpState = { error: null, success: false }
@@ -21,13 +22,14 @@ function SignUpForm() {
   const searchParams = useSearchParams()
   const next = searchParams.get('next') ?? ''
   const [state, action, pending] = useActionState(signUpAction, INITIAL)
+  const ctx = destinationContext(next, 'signup')
 
   if (state.success) {
     return (
       <AuthShell
         eyebrow="Account · Verify your email"
         title="Almost in."
-        intro="We sent a verification link to your inbox. Click it to finish signing up — once verified, you can sign in and pick up your reading."
+        intro="We sent a verification link to your inbox. Click it to finish signing up — once verified, you can sign in and pick up where you left off."
       >
         <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-ink-soft">
           Already verified?{' '}
@@ -43,11 +45,7 @@ function SignUpForm() {
   }
 
   return (
-    <AuthShell
-      eyebrow="Account · Create"
-      title="Begin formation."
-      intro="Make an account so your reading position carries across your devices. We'll only ask for your email and a password."
-    >
+    <AuthShell eyebrow={ctx.eyebrow} title={ctx.title} intro={ctx.intro}>
       <form action={action} className="space-y-5">
         <Field name="displayName" type="text" label="Display name (optional)" autoComplete="name" />
         <Field name="email" type="email" label="Email" autoComplete="email" required />

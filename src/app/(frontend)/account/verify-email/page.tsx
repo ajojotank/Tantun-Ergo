@@ -2,9 +2,9 @@
 
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 
-export default function VerifyEmailPage() {
+function VerifyEmailInner() {
   const params = useSearchParams()
   const router = useRouter()
   const token = params.get('token')
@@ -26,7 +26,7 @@ export default function VerifyEmailPage() {
         return
       }
       setState('ok')
-      setTimeout(() => router.push('/sign-in?verified=1&next=/catechist'), 1500)
+      setTimeout(() => router.push('/account/signin?verified=1&next=/catechist'), 1500)
     })()
   }, [token, router])
 
@@ -46,10 +46,18 @@ export default function VerifyEmailPage() {
           <h1 className="text-3xl font-display tracking-tight text-ink">Verification failed.</h1>
           <p className="mt-4 font-display italic text-ink-soft">{message}</p>
           <p className="mt-8 font-mono text-sm">
-            <Link href="/sign-up" className="underline">Try signing up again</Link>
+            <Link href="/account/signup" className="underline">Try signing up again</Link>
           </p>
         </>
       )}
     </main>
+  )
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={<main className="mx-auto max-w-md px-6 py-24 text-center"><p className="font-display italic text-ink-soft">Verifying…</p></main>}>
+      <VerifyEmailInner />
+    </Suspense>
   )
 }
