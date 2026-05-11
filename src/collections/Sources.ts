@@ -72,7 +72,8 @@ export const Sources: CollectionConfig = {
         { label: 'Generic 600-token chunks', value: 'generic' },
       ],
     },
-    { name: 'file', type: 'upload', relationTo: 'media', required: true },
+    { name: 'file', type: 'upload', relationTo: 'media',
+      admin: { description: 'Upload a PDF / DOCX / TXT to ingest. Optional — Sources can also be seeded programmatically (see scripts/).' } },
     { name: 'rightsNote', type: 'textarea',
       admin: { description: 'Surfaced on the Credits page. e.g. "Public domain (NPNF)", "Vatican English text, used with credit".' } },
     {
@@ -93,7 +94,7 @@ export const Sources: CollectionConfig = {
       admin: { readOnly: true, position: 'sidebar' } },
     { name: 'errorMessage', type: 'textarea',
       admin: { readOnly: true, condition: (data) => data?.ingestStatus === 'error' } },
-    { name: '_isSample', type: 'checkbox',
+    { name: 'isSample', type: 'checkbox',
       admin: { position: 'sidebar', description: 'Sample/filler doc — badged in studio + frontend.' } },
   ],
 }

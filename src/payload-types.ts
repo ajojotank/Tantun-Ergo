@@ -701,7 +701,10 @@ export interface Source {
     | 'summa'
     | 'father-book-chapter'
     | 'generic';
-  file: number | Media;
+  /**
+   * Upload a PDF / DOCX / TXT to ingest. Optional — Sources can also be seeded programmatically (see scripts/).
+   */
+  file?: (number | null) | Media;
   /**
    * Surfaced on the Credits page. e.g. "Public domain (NPNF)", "Vatican English text, used with credit".
    */
@@ -713,7 +716,7 @@ export interface Source {
   /**
    * Sample/filler doc — badged in studio + frontend.
    */
-  _isSample?: boolean | null;
+  isSample?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1344,7 +1347,7 @@ export interface SourcesSelect<T extends boolean = true> {
   chunkCount?: T;
   lastIngestedAt?: T;
   errorMessage?: T;
-  _isSample?: T;
+  isSample?: T;
   updatedAt?: T;
   createdAt?: T;
 }
